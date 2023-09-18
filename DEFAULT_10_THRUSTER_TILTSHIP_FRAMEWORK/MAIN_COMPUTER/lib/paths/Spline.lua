@@ -62,6 +62,9 @@ https://youtu.be/9_aJGUTePYo
 https://youtu.be/DzjtU4WLYNs
 
 Last Updated: 25/09/2017
+
+Rewritten in Lua by: 19PHOBOSS98
+August 11, 2023
 ]]--
 
 function SplinePoint(pos,len)
