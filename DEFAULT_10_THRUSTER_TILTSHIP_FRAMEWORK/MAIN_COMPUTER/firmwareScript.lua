@@ -1,4 +1,4 @@
-local HoundTurretDrone = require "lib.tilt_ships.HoundTurretDrone"
+local TenThrusterTemplateVertical = require "lib.tilt_ships.TenThrusterTemplateVertical"
 
 local instance_configs = {
 	radar_config = {
@@ -30,8 +30,5 @@ local instance_configs = {
 	},
 }
 
-local drone = HoundTurretDrone(instance_configs)
-
---drone:setTargetMode(true,"SHIP")
---drone:setTargetMode(false,"SHIP")
+local drone = TenThrusterTemplateVertical(instance_configs)
 drone:run()
