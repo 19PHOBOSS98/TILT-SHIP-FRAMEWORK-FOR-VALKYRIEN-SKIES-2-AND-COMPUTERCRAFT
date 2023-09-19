@@ -78,8 +78,11 @@ function DroneBaseClass:customFlightLoopBehavior()
 	useful variables to work with:
 		self.target_global_position :read/write
 		self.target_rotation :read/write
+	
 		self.rotation_error :read only
 		self.position_error :read only
+		self.ship_rotation :read only
+		self.ship_global_position :read only
 	]]--
 end
 
