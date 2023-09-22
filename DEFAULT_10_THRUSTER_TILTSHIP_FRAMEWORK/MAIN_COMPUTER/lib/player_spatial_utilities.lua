@@ -1,8 +1,8 @@
-os.loadAPI("lib/quaternions.lua")
+local quaternion = require "lib.quaternions"
 
-local quaternion = quaternions.Quaternion
+player_spatial_utilities = {}
 
-function getPlayerLookVector(player)--playerSpatialUtilities
+function player_spatial_utilities.getPlayerLookVector(player)--playerSpatialUtilities
 	local player_global_look_vector = vector.new(0,0,1)
 	player_global_look_vector = quaternion.fromRotation(vector.new(1,0,0), player.pitch):rotateVector3(player_global_look_vector)
 	player_global_look_vector = quaternion.fromRotation(vector.new(0,1,0), -player.yaw):rotateVector3(player_global_look_vector)
@@ -10,11 +10,11 @@ function getPlayerLookVector(player)--playerSpatialUtilities
 	return player_global_look_vector:normalize()
 end
 
-function getPlayerHeadOrientation(player)--playerSpatialUtilities
+function player_spatial_utilities.getPlayerHeadOrientation(player)--playerSpatialUtilities
 	return quaternion.fromRotation(vector.new(0,1,0), -player.yaw)*quaternion.fromRotation(vector.new(1,0,0), player.pitch):normalize()
 end
 
-function rotateVectorWithPlayerHead(player,vec)--playerSpatialUtilities
+function player_spatial_utilities.rotateVectorWithPlayerHead(player,vec)--playerSpatialUtilities
 	local new_vector = vec
 	new_vector = quaternion.fromRotation(vector.new(1,0,0), player.pitch):rotateVector3(new_vector)
 	new_vector = quaternion.fromRotation(vector.new(0,1,0), -player.yaw):rotateVector3(new_vector)
@@ -22,7 +22,7 @@ function rotateVectorWithPlayerHead(player,vec)--playerSpatialUtilities
 	return new_vector:normalize()
 end
 
-function PlayerVelocityCalculator()--playerSpatialUtilities
+function player_spatial_utilities.PlayerVelocityCalculator()--playerSpatialUtilities
 	return {
 	previous_player_position=vector.new(0,0,0),
 	previous_time = os.clock(),
@@ -38,3 +38,5 @@ function PlayerVelocityCalculator()--playerSpatialUtilities
 	end
 	}
 end
+
+return player_spatial_utilities

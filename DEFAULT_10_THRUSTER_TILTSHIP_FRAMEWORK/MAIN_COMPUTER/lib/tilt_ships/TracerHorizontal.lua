@@ -1,11 +1,10 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/pidcontrollers.lua")
-os.loadAPI("lib/targeting_utilities.lua")
-os.loadAPI("lib/player_spatial_utilities.lua")
-os.loadAPI("lib/flight_utilities.lua")
-os.loadAPI("lib/utilities.lua")
-os.loadAPI("lib/list_manager.lua")
-os.loadAPI("lib/path_utilities.lua")
+local quaternion = require "lib.quaternions"
+local utilities = require "lib.utilities"
+local targeting_utilities = require "lib.targeting_utilities"
+local player_spatial_utilities = require "lib.player_spatial_utilities"
+local flight_utilities = require "lib.flight_utilities"
+local list_manager = require "lib.list_manager"
+local path_utilities = require "lib.path_utilities"
 
 local TenThrusterTemplateHorizontal = require "lib.tilt_ships.TenThrusterTemplateHorizontal"
 local Path = require "lib.paths.Path"
@@ -42,6 +41,7 @@ local TracerHorizontal = TenThrusterTemplateHorizontal:subclass()
 
 --overridden functions--
 function TracerHorizontal:customRCProtocols(msg)
+	
 	local command = msg.cmd
 	command = command and tonumber(command) or command
 	case =
@@ -53,7 +53,10 @@ function TracerHorizontal:customRCProtocols(msg)
 			self.tracker:scrollDown()
 		end
 	end,
-	 default = function ( )
+	["walk"] = function (arguments)
+		self:setisWalk(arguments)
+	end,
+	default = function ( )
 		print(textutils.serialize(command)) 
 		print("customRCProtocols: default case executed")   
 	end,
@@ -65,40 +68,7 @@ function TracerHorizontal:customRCProtocols(msg)
 	end
 end
 
-function TracerHorizontal:customPreFlightLoopBehavior()
-
-	waypoints = {
-	--[[{pos = vector.new(657,40,-7)},
-	{pos = vector.new(650,40,-36)},
-	{pos = vector.new(619,30,-12)},
-	{pos = vector.new(617,20,-41)},
-	{pos = vector.new(643,35,-7)},
-	{pos = vector.new(670,40,-43)},
-	{pos = vector.new(671,40,-13)},	]]--
-	}
-	local h = generateHelix(10,3,2,15)
-	recenterStartToOrigin(h)
-	--offsetCoords(h,vector.new(671,40,-13))
-	offsetCoords(h,vector.new(659,24,-66))
-	--print("last helix coord:",h[#h])
-
-	local waypoint_length = #waypoints
-	for i,coord in ipairs(h) do
-		waypoints[i+waypoint_length] = {pos = coord}
-	end
-
-	
-	
-	local bLooped = true
-	self.ship_path = Path(waypoints,bLooped)
-	--self.spline_coords = self.ship_path:getNormalizedCoordsWithGradients(0.7,bLooped)
-	self.spline_coords = self.ship_path:getNormalizedCoordsWithGradientsAndNormals(0.7,bLooped)
-	self.tracker = IndexedListScroller()
-	self.tracker:updateListSize(#self.spline_coords)									
-	self.count = 0
-	self.prev_time = os.clock()
-	self.prev_normal = vector.new(0,1,0)
-end
+function TracerHorizontal:customPreFlightLoopBehavior() end
 
 function TracerHorizontal:customFlightLoopBehavior()
 	--[[
@@ -110,38 +80,69 @@ function TracerHorizontal:customFlightLoopBehavior()
 	]]--
 	--term.clear()
 	--term.setCursorPos(1,1)
-	
 	if(not self.radars.targeted_players_undetected) then
-		local trg_rot = self.target_rotation
-		
-		local carpet_ray_offset_orientation = quaternion.fromRotation(trg_rot:localPositiveZ(),-45)
-		local actual_up = carpet_ray_offset_orientation:rotateVector3(trg_rot:localPositiveX())
-		local actual_fwd = carpet_ray_offset_orientation:rotateVector3(trg_rot:localPositiveY())
-		local tangent = self.spline_coords[self.tracker:getCurrentIndex()].gradient:normalize()
-		local normal = self.spline_coords[self.tracker:getCurrentIndex()].normal
-		
-		--self.target_rotation = quaternion.fromToRotation(actual_fwd, tangent)*self.target_rotation
-		--self.target_rotation = quaternion.fromToRotation(actual_up, self.ship_constants.WORLD_UP_VECTOR)*self.target_rotation
-		
-		
-		--self.target_rotation = quaternion.fromToRotation(trg_rot:localPositiveZ(), normal)*self.target_rotation
-		self.target_rotation = quaternion.fromToRotation(trg_rot:localPositiveY(), tangent)*self.target_rotation
-		
-		self.target_global_position = self.spline_coords[self.tracker:getCurrentIndex()].pos
-		--self:debugProbe({self.count})
-		local current_time = os.clock()
-		self.count = self.count+(current_time - self.prev_time)
-		
-		if (self.count > 0.1) then
-			self.count = 0
-			self.tracker:scrollUp()
+		if (self.rc_variables.run_mode) then
+			if (self.spline_coords) then
+				local tangent = self.spline_coords[self.tracker:getCurrentIndex()].gradient:normalize()
+				local normal = self.spline_coords[self.tracker:getCurrentIndex()].normal
+				
+				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), normal)*self.target_rotation
+				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveZ(), tangent)*self.target_rotation
+				
+				self.target_global_position = self.spline_coords[self.tracker:getCurrentIndex()].pos
+				
+				local current_time = os.clock()
+				self.count = self.count+(current_time - self.prev_time)
+
+				if (self.count > 0.1) then
+					self.count = 0
+					if (self.rc_variables.walk) then
+						self.tracker:scrollUp()
+					end
+				end
+				self.prev_time = current_time
+			end
 		end
-		self.prev_time = current_time
-		
 	end
 end
 
+function TracerHorizontal:setisWalk(mode)
+	self.rc_variables.walk = mode
+end
+
 function TracerHorizontal:init(instance_configs)
+	local waypoints = {}
+
+	--sample demo--
+	local h = generateHelix(10,3,2,15)
+	recenterStartToOrigin(h)
+	offsetCoords(h,vector.new(659,24,-66))
+
+	local waypoint_length = #waypoints
+	for i,coord in ipairs(h) do
+		waypoints[i+waypoint_length] = {pos = coord}
+	end
+	--sample demo--
+	
+	waypoints = instance_configs.waypoints or waypoints
+	if (#waypoints>3) then
+		local loop_path = true
+		self.ship_path = Path(waypoints,loop_path)
+		self.spline_coords = self.ship_path:getNormalizedCoordsWithGradientsAndNormals(0.7,loop_path)
+		self.tracker = IndexedListScroller()
+		self.tracker:updateListSize(#self.spline_coords)									
+		self.count = 0
+		self.prev_time = os.clock()
+	end
+	
+	instance_configs.ship_constants_config = instance_configs.ship_constants_config or {}
+	instance_configs.ship_constants_config.DRONE_TYPE = instance_configs.ship_constants_config.DRONE_TYPE or "TRACER"
+	
+	instance_configs.rc_variables = instance_configs.rc_variables or 
+	{
+		walk = false,
+	}
+	
 	TracerHorizontal.superClass.init(self,instance_configs)
 end
 --overridden functions--

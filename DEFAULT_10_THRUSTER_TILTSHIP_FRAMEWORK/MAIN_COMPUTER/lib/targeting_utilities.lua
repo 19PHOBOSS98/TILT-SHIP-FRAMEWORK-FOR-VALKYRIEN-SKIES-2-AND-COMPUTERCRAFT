@@ -1,19 +1,20 @@
-os.loadAPI("lib/utilities.lua")
-os.loadAPI("lib/player_spatial_utilities.lua")
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/list_manager.lua")
+local utilities = require "lib.utilities"
+local player_spatial_utilities = require "lib.player_spatial_utilities"
+local quaternion = require "lib.quaternions"
+local list_manager = require "lib.list_manager"
 
 local mod = math.fmod
 local max = math.max
-local quaternion = quaternions.Quaternion
+
 local getPlayerHeadOrientation = player_spatial_utilities.getPlayerHeadOrientation
 local quadraticSolver = utilities.quadraticSolver
 local IndexedListScroller = list_manager.IndexedListScroller
 
 local pvc = player_spatial_utilities.PlayerVelocityCalculator()
 
+targeting_utilities = {}
 
-function getTargetAimPos(target_g_pos,target_g_vel,gun_g_pos,gun_g_vel,bullet_vel_sqr)--TargetingUtilities
+function targeting_utilities.getTargetAimPos(target_g_pos,target_g_vel,gun_g_pos,gun_g_vel,bullet_vel_sqr)--TargetingUtilities
 	local target_relative_pos = target_g_pos:sub(gun_g_pos)
 	local target_relative_vel = target_g_vel:sub(gun_g_vel)
 	local a = (target_relative_vel:dot(target_relative_vel))-(bullet_vel_sqr)
@@ -33,7 +34,7 @@ end
 
 
 
-function OnBoardPlayerRadar(
+function targeting_utilities.OnBoardPlayerRadar(
 ship_reader_component,
 player_radar_component,
 designated_player_name,
@@ -129,7 +130,7 @@ end
 
 
 
-function OnBoardShipRadar(ship_radar_component,designated_ship_id,ship_id_whitelist,range)
+function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_ship_id,ship_id_whitelist,range)
 	return{
 		ship_radar_component = ship_radar_component,
 		range = range,
@@ -225,15 +226,15 @@ end
 
 
 
-function RadarSystems(radar_arguments)
+function targeting_utilities.RadarSystems(radar_arguments)
 	return{
-		onboardPlayerRadar = OnBoardPlayerRadar(radar_arguments.ship_reader_component,
+		onboardPlayerRadar = targeting_utilities.OnBoardPlayerRadar(radar_arguments.ship_reader_component,
 												radar_arguments.player_radar_component,
 												radar_arguments.designated_player_name,
 												radar_arguments.player_name_whitelist,
 												radar_arguments.player_radar_box_size),
 												
-		onboardShipRadar = OnBoardShipRadar(radar_arguments.ship_radar_component,
+		onboardShipRadar = targeting_utilities.OnBoardShipRadar(radar_arguments.ship_radar_component,
 											radar_arguments.designated_ship_id,
 											radar_arguments.ship_id_whitelist,
 											radar_arguments.ship_radar_range),
@@ -337,7 +338,7 @@ function RadarSystems(radar_arguments)
 	}
 end
 
-function TargetSpatialAttributes()
+function targeting_utilities.TargetSpatialAttributes()
 	return{
 		target_spatial = {	orientation = quaternion.new(1,0,0,0), 
 							position = vector.new(0,0,0), 
@@ -359,7 +360,7 @@ end
 
 
 
-function TargetingSystem(
+function targeting_utilities.TargetingSystem(
 	external_targeting_system_channel,
 	targeting_mode,
 	auto_aim_active,
@@ -374,7 +375,7 @@ function TargetingSystem(
 		
 		use_external_radar = use_external_radar,
 		
-		target = TargetSpatialAttributes(),
+		target = targeting_utilities.TargetSpatialAttributes(),
 		
 		radarSystems = radarSystems,
 		
@@ -431,6 +432,7 @@ function TargetingSystem(
 	}
 end
 
+return targeting_utilities
 
 	--[[
 	local radar_arguments={	ship_radar_component,
@@ -442,9 +444,9 @@ end
 							player_name_whitelist,
 							player_radar_box_size,
 							ship_radar_range}
-	local radars = RadarSystems(radar_arguments)
-	local aimTargeting = TargetingSystem(EXTERNAL_AIM_TARGETING_CHANNEL,aim_targeting_mode,auto_aim,true,false,radars)
-	local orbitTargeting = TargetingSystem(EXTERNAL_ORBIT_TARGETING_CHANNEL,orbit_targeting_mode,auto_aim,false,false,radars)
+	local radars = targeting_utilities.RadarSystems(radar_arguments)
+	local aimTargeting = targeting_utilities.TargetingSystem(EXTERNAL_AIM_TARGETING_CHANNEL,aim_targeting_mode,auto_aim,true,false,radars)
+	local orbitTargeting = targeting_utilities.TargetingSystem(EXTERNAL_ORBIT_TARGETING_CHANNEL,orbit_targeting_mode,auto_aim,false,false,radars)
 
 	function updateTargetingSystem()
 		while run_firmware do

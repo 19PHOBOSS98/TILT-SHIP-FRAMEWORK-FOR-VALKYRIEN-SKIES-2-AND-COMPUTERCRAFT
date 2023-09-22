@@ -1,11 +1,10 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/pidcontrollers.lua")
-os.loadAPI("lib/targeting_utilities.lua")
-os.loadAPI("lib/player_spatial_utilities.lua")
-os.loadAPI("lib/flight_utilities.lua")
-os.loadAPI("lib/utilities.lua")
-os.loadAPI("lib/list_manager.lua")
-os.loadAPI("lib/path_utilities.lua")
+local quaternion = require "lib.quaternions"
+local utilities = require "lib.utilities"
+local targeting_utilities = require "lib.targeting_utilities"
+local player_spatial_utilities = require "lib.player_spatial_utilities"
+local flight_utilities = require "lib.flight_utilities"
+local list_manager = require "lib.list_manager"
+local path_utilities = require "lib.path_utilities"
 
 local TenThrusterTemplateVertical = require "lib.tilt_ships.TenThrusterTemplateVertical"
 local Path = require "lib.paths.Path"
@@ -41,7 +40,8 @@ local offsetCoords = path_utilities.offsetCoords
 local TracerVertical = TenThrusterTemplateVertical:subclass()
 
 --overridden functions--
-function TracerVertical:customProtocols(msg)
+function TracerVertical:customRCProtocols(msg)
+	
 	local command = msg.cmd
 	command = command and tonumber(command) or command
 	case =
@@ -53,9 +53,12 @@ function TracerVertical:customProtocols(msg)
 			self.tracker:scrollDown()
 		end
 	end,
-	 default = function ( )
+	["walk"] = function (arguments)
+		self:setisWalk(arguments)
+	end,
+	default = function ( )
 		print(textutils.serialize(command)) 
-		print("customProtocols: default case executed")   
+		print("customRCProtocols: default case executed")   
 	end,
 	}
 	if case[command] then
@@ -77,32 +80,39 @@ function TracerVertical:customFlightLoopBehavior()
 	]]--
 	--term.clear()
 	--term.setCursorPos(1,1)
-	
 	if(not self.radars.targeted_players_undetected) then
-		if (self.spline_coords) then
-			local tangent = self.spline_coords[self.tracker:getCurrentIndex()].gradient:normalize()
-			local normal = self.spline_coords[self.tracker:getCurrentIndex()].normal
-			
-			self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveZ(), normal)*self.target_rotation
-			self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), tangent)*self.target_rotation
-			
-			self.target_global_position = self.spline_coords[self.tracker:getCurrentIndex()].pos
-			
-			local current_time = os.clock()
-			self.count = self.count+(current_time - self.prev_time)
-			
-			if (self.count > 0.1) then
-				self.count = 0
-				self.tracker:scrollUp()
+		if (self.rc_variables.run_mode) then
+			if (self.spline_coords) then
+				local tangent = self.spline_coords[self.tracker:getCurrentIndex()].gradient:normalize()
+				local normal = self.spline_coords[self.tracker:getCurrentIndex()].normal
+				
+				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), normal)*self.target_rotation
+				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveZ(), tangent)*self.target_rotation
+				
+				self.target_global_position = self.spline_coords[self.tracker:getCurrentIndex()].pos
+				
+				local current_time = os.clock()
+				self.count = self.count+(current_time - self.prev_time)
+
+				if (self.count > 0.1) then
+					self.count = 0
+					if (self.rc_variables.walk) then
+						self.tracker:scrollUp()
+					end
+				end
+				self.prev_time = current_time
 			end
-			self.prev_time = current_time
 		end
 	end
 end
 
+function TracerVertical:setisWalk(mode)
+	self.rc_variables.walk = mode
+end
+
 function TracerVertical:init(instance_configs)
 	local waypoints = {}
-	
+
 	--sample demo--
 	local h = generateHelix(10,3,2,15)
 	recenterStartToOrigin(h)
@@ -125,6 +135,13 @@ function TracerVertical:init(instance_configs)
 		self.prev_time = os.clock()
 	end
 	
+	instance_configs.ship_constants_config = instance_configs.ship_constants_config or {}
+	instance_configs.ship_constants_config.DRONE_TYPE = instance_configs.ship_constants_config.DRONE_TYPE or "TRACER"
+	
+	instance_configs.rc_variables = instance_configs.rc_variables or 
+	{
+		walk = false,
+	}
 	
 	TracerVertical.superClass.init(self,instance_configs)
 end

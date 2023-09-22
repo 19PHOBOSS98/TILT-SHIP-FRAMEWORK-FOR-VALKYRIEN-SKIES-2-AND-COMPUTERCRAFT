@@ -1,9 +1,10 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/pidcontrollers.lua")
-os.loadAPI("lib/targeting_utilities.lua")
-os.loadAPI("lib/player_spatial_utilities.lua")
-os.loadAPI("lib/flight_utilities.lua")
-os.loadAPI("lib/utilities.lua")
+local quaternion = require "lib.quaternions"
+local utilities = require "lib.utilities"
+local pidcontrollers = require "lib.pidcontrollers"
+local targeting_utilities = require "lib.targeting_utilities"
+local player_spatial_utilities = require "lib.player_spatial_utilities"
+local flight_utilities = require "lib.flight_utilities"
+
 
 local Object = require "lib.object.Object"
 
@@ -18,7 +19,7 @@ local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
 local sign = utilities.sign
-local quaternion = quaternions.Quaternion
+
 local quadraticSolver = utilities.quadraticSolver
 local getTargetAimPos = targeting_utilities.getTargetAimPos
 local getQuaternionRotationError = flight_utilities.getQuaternionRotationError
@@ -78,7 +79,6 @@ function DroneBaseClass:customFlightLoopBehavior()
 	useful variables to work with:
 		self.target_global_position :read/write
 		self.target_rotation :read/write
-	
 		self.rotation_error :read only
 		self.position_error :read only
 		self.ship_rotation :read only
@@ -629,20 +629,20 @@ function DroneBaseClass:calculateMovement()
 	
 	
 	--PID Controllers--
-	local pos_PID = pidcontrollers.PID_PWM(	self.ship_constants.PID_SETTINGS.POS.P,
+	local pos_PID = pidcontrollers.PID_Continuous_Vector(	self.ship_constants.PID_SETTINGS.POS.P,
 											self.ship_constants.PID_SETTINGS.POS.I,
 											self.ship_constants.PID_SETTINGS.POS.D,
 											-max_linear_acceleration,max_linear_acceleration)
 
-	local rot_x_PID = pidcontrollers.PID_PWM_scalar(self.ship_constants.PID_SETTINGS.ROT.X.P,
+	local rot_x_PID = pidcontrollers.PID_Continuous_Scalar(self.ship_constants.PID_SETTINGS.ROT.X.P,
 													self.ship_constants.PID_SETTINGS.ROT.X.I,
 													self.ship_constants.PID_SETTINGS.ROT.X.D,
 													-max_angular_acceleration.x,max_angular_acceleration.x)
-	local rot_y_PID = pidcontrollers.PID_PWM_scalar(self.ship_constants.PID_SETTINGS.ROT.Y.P,
+	local rot_y_PID = pidcontrollers.PID_Continuous_Scalar(self.ship_constants.PID_SETTINGS.ROT.Y.P,
 													self.ship_constants.PID_SETTINGS.ROT.Y.I,
 													self.ship_constants.PID_SETTINGS.ROT.Y.D,
 													-max_angular_acceleration.y,max_angular_acceleration.y)
-	local rot_z_PID = pidcontrollers.PID_PWM_scalar(self.ship_constants.PID_SETTINGS.ROT.Z.P,
+	local rot_z_PID = pidcontrollers.PID_Continuous_Scalar(self.ship_constants.PID_SETTINGS.ROT.Z.P,
 													self.ship_constants.PID_SETTINGS.ROT.Z.I,
 													self.ship_constants.PID_SETTINGS.ROT.Z.D,
 													-max_angular_acceleration.z,max_angular_acceleration.z)

@@ -1,5 +1,5 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/utilities.lua")
+local quaternion = require "lib.quaternions"
+local utilities = require "lib.utilities"
 
 local RemoteControlDrone = require "lib.tilt_ships.RemoteControlDrone"
 
@@ -13,7 +13,6 @@ local sin = math.sin
 local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
-local quaternion = quaternions.Quaternion--want to learn more about quaternions? here's a simple tutorial video by sociamix that should get you started: https://youtu.be/1yoFjjJRnLY
 
 
 --only works with the BARE horizontal_ten_thruster_template schematic--
@@ -50,7 +49,7 @@ function TenThrusterTemplateHorizontal:init(instance_configs)
 	
 	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000
 	
-	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 2
+	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 1
 	
 	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or
 	{

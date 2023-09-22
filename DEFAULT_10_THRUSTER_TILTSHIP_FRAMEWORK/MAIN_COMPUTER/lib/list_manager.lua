@@ -1,11 +1,13 @@
 local mod = math.fmod
 local max = math.max
 
-function loopScrollIndex(indx,limit)
+list_manager = {}
+
+function list_manager.loopScrollIndex(indx,limit)
 	return mod(indx-1+limit,limit)+1
 end
 
-function IndexedListScroller()
+function list_manager.IndexedListScroller()
 	return{
 	target_index=1,
 	index_scroll_direction=1,
@@ -17,21 +19,21 @@ function IndexedListScroller()
 		return self.target_index
 	end,
 	getNextIndex=function(self)
-		return loopScrollIndex(self.target_index+1,self.list_size)
+		return list_manager.loopScrollIndex(self.target_index+1,self.list_size)
 	end,
 	getPrevIndex=function(self)
-		return loopScrollIndex(self.target_index-1,self.list_size)
+		return list_manager.loopScrollIndex(self.target_index-1,self.list_size)
 	end,
 	scrollUp=function(self)
 		self.index_scroll_direction = 1
-		self.target_index = loopScrollIndex(self.target_index+self.index_scroll_direction,self.list_size)
+		self.target_index = list_manager.loopScrollIndex(self.target_index+self.index_scroll_direction,self.list_size)
 	end,
 	scrollDown=function(self)
 		self.index_scroll_direction = -1
-		self.target_index = loopScrollIndex(self.target_index+self.index_scroll_direction,self.list_size)
+		self.target_index = list_manager.loopScrollIndex(self.target_index+self.index_scroll_direction,self.list_size)
 	end,
 	skip=function(self)
-		self.target_index = loopScrollIndex(self.target_index+self.index_scroll_direction,self.list_size)
+		self.target_index = list_manager.loopScrollIndex(self.target_index+self.index_scroll_direction,self.list_size)
 	end,
 	getCurrentItem=function(self,list)
 		return list[self.target_index]
@@ -39,3 +41,4 @@ function IndexedListScroller()
 	}
 end
 
+return list_manager

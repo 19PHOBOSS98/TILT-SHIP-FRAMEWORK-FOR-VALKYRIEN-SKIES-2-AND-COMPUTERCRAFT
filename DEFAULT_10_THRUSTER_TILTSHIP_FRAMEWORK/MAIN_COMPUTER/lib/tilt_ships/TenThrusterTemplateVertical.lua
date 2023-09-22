@@ -1,5 +1,5 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/utilities.lua")
+local quaternion = require "lib.quaternions"
+local utilities = require "lib.utilities"
 
 local RemoteControlDrone = require "lib.tilt_ships.RemoteControlDrone"
 
@@ -13,8 +13,6 @@ local sin = math.sin
 local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
-local quaternion = quaternions.Quaternion--want to learn more about quaternions? here's a simple tutorial video by sociamix that should get you started: https://youtu.be/1yoFjjJRnLY
-
 
 --only works with the BARE vertical_ten_thruster_template schematic--
 local TenThrusterTemplateVertical = RemoteControlDrone:subclass()

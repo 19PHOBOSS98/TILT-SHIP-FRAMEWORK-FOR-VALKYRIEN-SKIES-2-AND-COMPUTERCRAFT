@@ -1,11 +1,10 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/pidcontrollers.lua")
-os.loadAPI("lib/targeting_utilities.lua")
-os.loadAPI("lib/player_spatial_utilities.lua")
-os.loadAPI("lib/flight_utilities.lua")
-os.loadAPI("lib/utilities.lua")
-os.loadAPI("lib/list_manager.lua")
-local DroneInstantiable = require "lib.tilt_ships.DroneInstantiable"
+local quaternion = require "lib.quaternions"
+local utilities = require "lib.utilities"
+local targeting_utilities = require "lib.targeting_utilities"
+local player_spatial_utilities = require "lib.player_spatial_utilities"
+local flight_utilities = require "lib.flight_utilities"
+local list_manager = require "lib.list_manager"
+
 local TenThrusterTemplateVertical = require "lib.tilt_ships.TenThrusterTemplateVertical"
 local Path = require "lib.paths.Path"
 local sqrt = math.sqrt
@@ -19,7 +18,7 @@ local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
 local sign = utilities.sign
-local quaternion = quaternions.Quaternion--want to learn more about quaternions? here's a simple tutorial video by sociamix that should get you started: https://youtu.be/1yoFjjJRnLY
+
 local quadraticSolver = utilities.quadraticSolver
 local getTargetAimPos = targeting_utilities.getTargetAimPos
 local getQuaternionRotationError = flight_utilities.getQuaternionRotationError

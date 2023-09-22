@@ -1,4 +1,4 @@
-os.loadAPI("lib/utilities.lua")
+local utilities = require "lib.utilities"
 
 local roundTo_vector3 = utilities.roundTo_vector3
 local round_vector3 = utilities.round_vector3
@@ -9,6 +9,7 @@ local roundTo = utilities.roundTo
 local sign = utilities.sign
 local clamp = utilities.clamp
 
+pidcontrollers = {}
 --[[
 thanks to: Jyota_malcolm
 https://www.reddit.com/r/Stormworks/comments/kei6pg/lua_code_for_a_basic_pid/
@@ -36,7 +37,7 @@ return{p=p,i=i,d=d,error=0,derivative=0,integral=0,run=function(self,setpoint,pr
 end
 ]]--
 
-function PID_PWM(p,i,d,clamp_parameter_min,clamp_parameter_max)
+function pidcontrollers.PID_Continuous_Vector(p,i,d,clamp_parameter_min,clamp_parameter_max)
 	return{p=p,i=i,d=d,
 	error=vector.new(0,0,0),
 	derivative=vector.new(0,0,0),
@@ -98,7 +99,7 @@ function PID_PWM(p,i,d,clamp_parameter_min,clamp_parameter_max)
 end
 
 
-function PID_PWM_scalar(p,i,d,clamp_parameter_min,clamp_parameter_max)
+function pidcontrollers.PID_Continuous_Scalar(p,i,d,clamp_parameter_min,clamp_parameter_max)
 	return{p=p,i=i,d=d,
 	error=0,
 	derivative=0,
@@ -146,7 +147,7 @@ function PID_PWM_scalar(p,i,d,clamp_parameter_min,clamp_parameter_max)
 	}
 end
 
-function PID_Discrete_vector(p,i,d,clamp_parameter_min,clamp_parameter_max,sample_interval)
+function pidcontrollers.PID_Discrete_Vector(p,i,d,clamp_parameter_min,clamp_parameter_max,sample_interval)
 	return{p=p,i=i,d=d,
 	error=vector.new(0,0,0),
 	prev_error=vector.new(0,0,0),
@@ -210,7 +211,7 @@ function PID_Discrete_vector(p,i,d,clamp_parameter_min,clamp_parameter_max,sampl
 	}
 end
 
-function PID_Discrete_scalar(p,i,d,clamp_parameter_min,clamp_parameter_max,sample_interval)
+function pidcontrollers.PID_Discrete_Scalar(p,i,d,clamp_parameter_min,clamp_parameter_max,sample_interval)
 	return{p=p,i=i,d=d,
 	error=0,
 	prev_error = 0,
@@ -261,58 +262,4 @@ function PID_Discrete_scalar(p,i,d,clamp_parameter_min,clamp_parameter_max,sampl
 	}
 end
 
---[[
-
---PHOBOSS: experimental PID: trying to use vector magnitude as error instead of going over each axis
-function pid_vector_magnitude(p,i,d)--for quaternion error
-return{p=p,i=i,d=d,error=0,derivative=0,integral=vector.new(0,0,0),continue_integral_compounding=vector.new(0,0,0),run=function(self, error_magnitude,error_axis)
-		local error,derivative
-		local integral = vector.new(0,0,0)
-		
-		error = error_magnitude
-		error_sign = sign_vector3(error_axis:mul(error_magnitude))
-		derivative = error - self.error
-		
-		-- need to clamp integral to account for thruster saturation --
-		
-		err_x_cont = error
-		err_x_cont.x = err_x_cont.x*self.continue_integral_compounding.x
-		err_x_cont.y = err_x_cont.y*self.continue_integral_compounding.y
-		err_x_cont.z = err_x_cont.z*self.continue_integral_compounding.z
-
-		integral = self.integral:add(err_x_cont)
-		
-		self.error = error
-		self.derivative = derivative
-		self.integral = integral
-		
-		output = error_axis:mul(error*self.p + derivative*self.d)
-		output = output:add(integral:mul(self.i))
-		
-		output_sign = sign_vector3(output)
-		
-		clamped_output = clamp_vector3(output,-15,15)
-		
-		thruster_is_saturated = vector.new(0,0,0)
-		is_same_sign = vector.new(0,0,0)
-		
-		thruster_is_saturated.x = clamped_output.x == output.x and 0 or 1
-		thruster_is_saturated.y = clamped_output.y == output.y and 0 or 1
-		thruster_is_saturated.z = clamped_output.z == output.z and 0 or 1
-		
-		is_same_sign.x = error_sign.x == output_sign.x and 1 or 0
-		is_same_sign.y = error_sign.y == output_sign.y and 1 or 0
-		is_same_sign.z = error_sign.z == output_sign.z and 1 or 0
-		
-		self.continue_integral_compounding.x = 1 - (thruster_is_saturated.x*is_same_sign.x)
-		self.continue_integral_compounding.y = 1 - (thruster_is_saturated.y*is_same_sign.y)
-		self.continue_integral_compounding.z = 1 - (thruster_is_saturated.z*is_same_sign.z)
-		
-		return clamped_output
-		
-		-- need to clamp integral to account for thruster saturation --
-	end
-}
-end
---PHOBOSS--
-]]--
+return pidcontrollers

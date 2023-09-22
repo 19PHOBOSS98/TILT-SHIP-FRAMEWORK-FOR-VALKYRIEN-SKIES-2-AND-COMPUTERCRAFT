@@ -3,7 +3,9 @@ local sin = math.sin
 local pi = math.pi
 local two_pi = 2*pi
 
-function generateHelix(radius,gap,loops,resolution)
+path_utilities = {}
+
+function path_utilities.generateHelix(radius,gap,loops,resolution)
 	local helix = {}
 
 	for t=0,two_pi*loops,two_pi/resolution do
@@ -13,17 +15,18 @@ function generateHelix(radius,gap,loops,resolution)
 	return helix
 end
 
-function recenterStartToOrigin(coords)
+function path_utilities.recenterStartToOrigin(coords)
 	local coord_i = coords[1]
 	for i,coord in ipairs(coords) do
 		coords[i] = coord-coord_i
 	end
 end
 
-function offsetCoords(coords,offset)
+function path_utilities.offsetCoords(coords,offset)
 	local coord_i = coords[1]
 	for i,coord in ipairs(coords) do
 		coords[i] = coord+offset
 	end
 end
 
+return path_utilities

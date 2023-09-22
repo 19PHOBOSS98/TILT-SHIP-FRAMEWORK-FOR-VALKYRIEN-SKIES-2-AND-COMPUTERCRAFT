@@ -1,10 +1,3 @@
-os.loadAPI("lib/quaternions.lua")
-os.loadAPI("lib/pidcontrollers.lua")
-os.loadAPI("lib/targeting_utilities.lua")
-os.loadAPI("lib/player_spatial_utilities.lua")
-os.loadAPI("lib/flight_utilities.lua")
-os.loadAPI("lib/utilities.lua")
-
 local DroneBaseClass = require "lib.tilt_ships.DroneBaseClass"
 
 local RemoteControlDrone = DroneBaseClass:subclass()

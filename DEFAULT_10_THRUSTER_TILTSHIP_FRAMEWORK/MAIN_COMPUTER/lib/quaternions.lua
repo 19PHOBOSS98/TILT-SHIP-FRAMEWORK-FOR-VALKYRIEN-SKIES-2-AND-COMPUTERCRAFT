@@ -2,7 +2,8 @@
 --https://gist.github.com/ColonelThirtyTwo/1735522 --
 -- faster access to some math library functions
 
-os.loadAPI("lib/utilities.lua")
+local utilities = require "lib.utilities"
+
 local abs   = math.abs
 local Round = math.Round
 local sqrt  = math.sqrt
@@ -20,6 +21,7 @@ local deg2rad = math.pi/180
 local rad2deg = 180/math.pi
 
 local delta = 0.0000001000000
+
 local clamp = utilities.clamp
 
 Quaternion = {}
@@ -567,3 +569,5 @@ end
 function Quaternion:tostring()
 	return string.format("<%d,%d,%d,%d>",self[1],self[2],self[3],self[4])
 end
+
+return Quaternion
