@@ -1,6 +1,6 @@
 # TILT-SHIP-FRAMEWORK-FOR-VALKYRIEN-SKIES-2-AND-COMPUTERCRAFT
 
-## BEFORE YOU USE THIS
+## BEFORE YOU USE ANY OF THIS
 MAKE SURE TO USE VS2-Tournament Version **1.1.0** or higher.
 
 Trying to fly any of my ships without it WILL crash the physics thread (and your game).
