@@ -1,4 +1,4 @@
-os.loadAPI("lib/list_manager.lua")
+local list_manager = require "lib.list_manager"
 local Spline = require "lib.paths.Spline"
 
 local sqrt = math.sqrt
