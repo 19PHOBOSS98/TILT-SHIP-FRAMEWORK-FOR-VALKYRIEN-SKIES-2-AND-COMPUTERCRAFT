@@ -1,5 +1,16 @@
 # TILT-SHIP-FRAMEWORK-FOR-VALKYRIEN-SKIES-2-AND-COMPUTERCRAFT
 
+## BEFORE YOU USE THIS
+MAKE SURE TO USE VS2-Tournament Version **1.1.0** or higher.
+
+Trying to fly any of my ships without it WILL crash the physics thread (and your game).
+
+YOU HAVE BEEN WARNED
+
+It's not out yet since the making of this post
+
+but there is a test build available in the [Valkyrien Skies 2 Discord server](https://discord.com/invite/dWwM8G3)
+
 ## HOW TO USE
   1. Copy the contents of the `DEFAULT_10_THRUSTER_TILTSHIP_FRAMEWORK` folder (BOW_COMPONENT_CONTROLLER_COMPUTER,STERN_COMPONENT_CONTROLLER_COMPUTER and MAIN_COMPUTER) to the `computercraft/computer` directory and rename the three folders to their respective Turtle Computer IDs
   2. Edit the `startup.lua` script inside the `BOW_COMPONENT_CONTROLLER_COMPUTER` and `STERN_COMPONENT_CONTROLLER_COMPUTER` folder to start either `V10T_(BOW/STERN).lua` or `H10T_(BOW/STERN).lua` depending on the kind of thruster template used (TenThrusterTemplateHorizontal or TenThrusterTemplateVertical)
