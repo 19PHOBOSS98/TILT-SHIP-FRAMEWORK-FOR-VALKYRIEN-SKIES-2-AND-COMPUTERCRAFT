@@ -81,6 +81,27 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
   5. Restart the script.
       + the lamp should light up when the drone reaches its target position and shut off when it's not
       + try pulling the drone away to watch the lamp react to the change in position
+  6. Use `target_rotation` to set the drones orientation. 
+      + Remember this variable accepts quaternions
+
+    ...
+     
+    local new_pos = vector.new(17,-48,10)
+    
+    function drone:customFlightLoopBehavior()
+      self.target_global_position = new_pos
+      
+      if (self.position_error:length()<0.5) then
+        redstone.setAnalogOutput("front",15)
+        self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), upward)*self.target_rotation
+      else
+        redstone.setAnalogOutput("front",0)
+      end
+      
+    end
+    
+    ...
+    
   7. 
 
 ## DEFAULT TILT-SHIP FRAMEWORK
