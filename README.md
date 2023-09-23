@@ -205,8 +205,10 @@ I made a separate java project to do just that:
 https://github.com/19PHOBOSS98/TILT_SHIP_MINECRAFT_SCHEMATIC_INERTIA_TENSOR_CALCULATOR
 
 Once you're done building and calculated your ships' new Inertia tensors copy them to the `ship_constants_config` table in our `firmwareScript`:
+![2023-09-23_13 36 15](https://github.com/19PHOBOSS98/TILT-SHIP-FRAMEWORK-FOR-VALKYRIEN-SKIES-2-AND-COMPUTERCRAFT/assets/37253663/04ea49f2-e5f3-4ae7-b211-276cab403227)
 
 ```
+(sample inertia tensor from tiltship.nbt)
 ...
 
 ship_constants_config = {
@@ -229,8 +231,10 @@ ship_constants_config = {
 
 ```
 
-You might decide to use higher tier Tournament thrusters or reconfigure the `thrusterSpeed` settings from the Tournament Mod configs for your new ship.
+You might decide to use higher tier Tournament thrusters or reconfigure the `thrusterSpeed` settings from the Tournament Mod configs for your new ship if it ever gets too heavy.
 If you do, make sure to let the drone know about it by overriding the drones' `MOD_CONFIGURED_THRUSTER_SPEED` and `THRUSTER_TIER` settings in the `ship_constants_config` table.
+
+When upgrading Tournament thruster tiers make sure that they all match.
 
 The default ship templates that I provided (`TenThrusterTemplateHorizontal` and `TenThrusterTemplateVertical`) have these values at `10'000` and `2` respectively by default.
 
