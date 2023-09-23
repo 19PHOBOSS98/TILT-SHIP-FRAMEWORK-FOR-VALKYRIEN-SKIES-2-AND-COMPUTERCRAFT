@@ -27,6 +27,8 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
        + The `startup.lua` script earlier should automatically run them when you boot up the turtles.
   8. Run `firmwareScript.lua` in the Main Turtle. If everything goes well your drone should start hovering in place.
   9. Test it with an ImpulseGun (VS2-Tournament) or grab it with a Gravitron (VS2-Clockwork). It should try and come back to its original position.
+  10. On the Main Turtle's terminal window, hit 'q' to safely stop the drone.
+      + Send the "hush" command over rednet to shut it down remotely.
 
 ### HOW TO MODIFY FLIGHT BEHAVIOR
   1. Open `MAIN_COMPUTER/firmwareScript.lua` with your preferred text editor
@@ -42,7 +44,44 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
     drone:run()
     ...
     
-  3. 
+  3. To move the ship to a new world position set the drone's `target_global_position` variable
+
+    ...
+     
+    local new_pos = vector.new(17,-48,10)
+    
+    function drone:customFlightLoopBehavior()
+      self.target_global_position = new_pos
+    end
+    
+    ...
+
+  4. Run `firmwareScript.lua` in the Main Turtle. The ship should start moving to the new position
+  5. Safely stop the drone by hitting 'q' on the Main Turtle's terminal
+  6. Place a Redstone Lamp at the front of the Main Turtle
+  7. Use `position_error` and `rotation_error` to gauge how far away the ship is from its target position and rotation
+
+    ...
+     
+    local new_pos = vector.new(17,-48,10)
+    
+    function drone:customFlightLoopBehavior()
+      self.target_global_position = new_pos
+      
+      if (self.position_error:length()<0.5) then
+        redstone.setAnalogOutput("front",15)
+      else
+        redstone.setAnalogOutput("front",0)
+      end
+      
+    end
+    
+    ...
+    
+  5. Restart the script.
+      + the lamp should light up when the drone reaches its target position and shut off when it's not
+      + try pulling the drone away to watch the lamp react to the change in position
+  7. 
 
 ## DEFAULT TILT-SHIP FRAMEWORK
 
