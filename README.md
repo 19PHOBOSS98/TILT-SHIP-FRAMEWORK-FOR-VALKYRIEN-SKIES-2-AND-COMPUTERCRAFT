@@ -11,14 +11,38 @@ It's not out yet since the making of this post
 
 but there is a test build available in the [Valkyrien Skies 2 Discord server](https://discord.com/invite/dWwM8G3)
 
-## HOW TO USE
-  1. Copy the contents of the `DEFAULT_10_THRUSTER_TILTSHIP_FRAMEWORK` folder (BOW_COMPONENT_CONTROLLER_COMPUTER,STERN_COMPONENT_CONTROLLER_COMPUTER and MAIN_COMPUTER) to the `computercraft/computer` directory and rename the three folders to their respective Turtle Computer IDs
-  2. Edit the `startup.lua` script inside the `BOW_COMPONENT_CONTROLLER_COMPUTER` and `STERN_COMPONENT_CONTROLLER_COMPUTER` folder to start either `V10T_(BOW/STERN).lua` or `H10T_(BOW/STERN).lua` depending on the kind of thruster template used (TenThrusterTemplateHorizontal or TenThrusterTemplateVertical)
-  3. Edit the `DRONE_DESIGNATION` and `DRONE_TO_COMPONENT_BROADCAST_CHANNEL` constants in the `(V/H)10T_(BOW/STERN).lua` scripts to serve the correct drone
-  4. Edit the `DRONE_ID ` and `COMPONENT_TO_DRONE_CHANNEL` constants in the `MAIN_COMPUTER/firmwareScript.lua` file to match what we did in step 3 
-  5. Configure the `designated_ship_id` and `designated_player_name` in `MAIN_COMPUTER/firmwareScript.lua`
-  6. Run the `(V/H)10T_(BOW/STERN).lua` scripts on both the BOW & STERN Component Controllers (the two turtles around the main turtle). If you hit restart on both of the turtles they should run the script automatically using the `startup.lua` script
-  7. Run the `firmwareScript.lua` script in the Main Turtle. If everything goes well your drone should start hovering in place. Test it with an ImpulseGun (VS2-Tournament). It should try and keep its orientation and position after trying to smacking it away. 
+## HOW TO SETUP DEFAULT SHIP TEMPLATES
+  1. Prepare 3 CC(ComputerCraft):Turtles with Wireless Modems. 
+        + Two REGULAR CC:Turtles to act as the BOW and STERN thruster controllers
+        + One REGULAR/ADVANCED CC:Turtle with an extra mounted PlayerDetector peripheral to act as the main computer
+        + Note that REGULAR and ADVANCED Turtles weigh different. The following schematics are calibrated to use the turtles as mentioned above.
+  2. Spawn in either `ten_thruster_template_vertical.nbt` or `ten_thruster_template_horizontal.nbt` in your world using schematics
+  3. Copy the contents of the `DEFAULT_10_THRUSTER_TILTSHIP_FRAMEWORK` folder (BOW_COMPONENT_CONTROLLER_COMPUTER,STERN_COMPONENT_CONTROLLER_COMPUTER and MAIN_COMPUTER) to the `computercraft/computer` directory and rename the three folders to their respective Turtle Computer IDs
+  4. Edit the `startup.lua` script inside the `BOW_COMPONENT_CONTROLLER_COMPUTER` and `STERN_COMPONENT_CONTROLLER_COMPUTER` folder to start either `(V/H)10T_(BOW/STERN).lua`
+       + use `V10T_(BOW/STERN).lua` for `ten_thruster_template_vertical.nbt`
+       + use `H10T_(BOW/STERN).lua` for `ten_thruster_template_horizontal.nbt`
+  5. Edit the `DRONE_DESIGNATION` and `DRONE_TO_COMPONENT_BROADCAST_CHANNEL` constants in the `(V/H)10T_(BOW/STERN).lua` scripts to serve the correct drone
+  6. Edit the `DRONE_ID` and `COMPONENT_TO_DRONE_CHANNEL` constants in the `MAIN_COMPUTER/firmwareScript.lua` file to match what we did in step 3
+  7. Run the `(V/H)10T_(BOW/STERN).lua` scripts on both the BOW & STERN Component Controllers (the two turtles around the main turtle). 
+       + The `startup.lua` script earlier should automatically run them when you boot up the turtles.
+  8. Run `firmwareScript.lua` in the Main Turtle. If everything goes well your drone should start hovering in place.
+  9. Test it with an ImpulseGun (VS2-Tournament) or grab it with a Gravitron (VS2-Clockwork). It should try and come back to its original position.
+
+### HOW TO MODIFY FLIGHT BEHAVIOR
+  1. Open `MAIN_COMPUTER/firmwareScript.lua` with your preferred text editor
+  2. Scroll down to the `drone` instance and override its `customFlightLoopBehavior()` function
+
+    ...
+    local drone = TenThrusterTemplateVertical(instance_configs)
+    
+    function drone:customFlightLoopBehavior()
+    
+    end
+    
+    drone:run()
+    ...
+    
+  3. 
 
 ## DEFAULT TILT-SHIP FRAMEWORK
 
