@@ -295,6 +295,14 @@ ship_constants_config = {
       
       * HoundTurretDrone
 
-## NOTE
-Until Valkyrien Computers releases an update to expose a ships inertia tensors, we need to calculate it manually for each new tilt-ship we build. I made this java project that uses CreateMod Schematic files to do just that:
-https://github.com/19PHOBOSS98/TILT_SHIP_MINECRAFT_SCHEMATIC_INERTIA_TENSOR_CALCULATOR/tree/main
+## YOU MIGHT ALSO LIKE THESE:
++ DRONE SWARM MANAGER UI:
++ HOUND TURRETS:
+	+ VIDEO SHOWCASE
+ 	+ BUILD SETUP GUIDE
++ GEOFISH:
+	+ VIDEO SHOWCASE
+ 	+ BUILD SETUP GUIDE
++ CHORD:
++ GLARE:
++ Mr. GRIN:
