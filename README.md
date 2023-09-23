@@ -184,13 +184,17 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
     
     ...
 
-## HOW TO BUILD ON TOP OF DEFAULT SHIP TEMPLATES
+## HOW TO BUILD ON TOP OF THE DEFAULT SHIP TEMPLATES
 
-Before you decide to add more blocks to the template lets talk about Inertia Tensors for a second shall we?
+Before you decide to add more blocks to the template lets talk about **Inertia Tensors** for a second, shall we?
 	
 Inertia tensors are something that we use to calculate how much torque we need to spin a ship in a certain way.
 
-what blocks you use and where you put it around a ship "adds" to the ships inertia tensor.
+The kind of blocks you use and where you put it around a ship "adds" to the ships inertia tensor.
+
+Here are a few quick videos if you want to learn more about them:
+[What Are Inertia Tensors?](https://youtu.be/Ch-VTxTIt0E?si=3AP0bUOdv7Ck5koE)
+[Understanding How Inertia Tensors Are Calculated?](https://youtu.be/SbTSATs-DBA?si=6KFKVtuJIv3T1f6t)
 
 These DEFAULT SHIP TEMPLATES that I made for you guys already have their own pre-calculated inertia tensors. 
 That's why they're stable enough to fly on their own right out of the box.
@@ -213,6 +217,7 @@ Once you're done building and calculated your ships' new Inertia tensors copy th
 
 ship_constants_config = {
 		DRONE_ID = 420,
+
 		LOCAL_INERTIA_TENSOR = 
 		{
 		x=vector.new(136646.51503523337,-9.454405916416484,-14.304751273285392),
@@ -233,10 +238,9 @@ ship_constants_config = {
 
 You might decide to use higher tier Tournament thrusters or reconfigure the `thrusterSpeed` settings from the Tournament Mod configs for your new ship if it ever gets too heavy.
 If you do, make sure to let the drone know about it by overriding the drones' `MOD_CONFIGURED_THRUSTER_SPEED` and `THRUSTER_TIER` settings in the `ship_constants_config` table.
+The ship templates that I made (`TenThrusterTemplateHorizontal` and `TenThrusterTemplateVertical`) have these values at `10'000` and `2` respectively by default.
 
 When upgrading Tournament thruster tiers make sure that they all match.
-
-The default ship templates that I provided (`TenThrusterTemplateHorizontal` and `TenThrusterTemplateVertical`) have these values at `10'000` and `2` respectively by default.
 
 ```
 ...
@@ -257,7 +261,7 @@ ship_constants_config = {
 		z=vector.new(1.3024822809663507E-9,2.1964659919891753E-6,1.099029130362614E-5)
 		},
 
-    MOD_CONFIGURED_THRUSTER_SPEED = 10000,
+		MOD_CONFIGURED_THRUSTER_SPEED = 10000,
 		THRUSTER_TIER = 5,
 	},
 
