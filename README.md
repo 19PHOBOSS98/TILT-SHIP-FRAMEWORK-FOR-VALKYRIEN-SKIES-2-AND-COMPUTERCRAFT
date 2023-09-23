@@ -17,17 +17,18 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
         + One REGULAR/ADVANCED CC:Turtle with an extra mounted PlayerDetector peripheral to act as the main computer
         + Note that REGULAR and ADVANCED Turtles weigh different. The following schematics are calibrated to use the turtles as mentioned above.
   2. Spawn in either `ten_thruster_template_vertical.nbt` or `ten_thruster_template_horizontal.nbt` in your world using schematics
-  3. Copy the contents of the `DEFAULT_10_THRUSTER_TILTSHIP_FRAMEWORK` folder (BOW_COMPONENT_CONTROLLER_COMPUTER,STERN_COMPONENT_CONTROLLER_COMPUTER and MAIN_COMPUTER) to the `computercraft/computer` directory and rename the three folders to their respective Turtle Computer IDs
-  4. Edit the `startup.lua` script inside the `BOW_COMPONENT_CONTROLLER_COMPUTER` and `STERN_COMPONENT_CONTROLLER_COMPUTER` folder to start either `(V/H)10T_(BOW/STERN).lua`
+  3. Make sure to upgrade the Tournament Thrusters to Tier 2.
+  4. Copy the contents of the `DEFAULT_10_THRUSTER_TILTSHIP_FRAMEWORK` folder (BOW_COMPONENT_CONTROLLER_COMPUTER,STERN_COMPONENT_CONTROLLER_COMPUTER and MAIN_COMPUTER) to the `computercraft/computer` directory and rename the three folders to their respective Turtle Computer IDs
+  5. Edit the `startup.lua` script inside the `BOW_COMPONENT_CONTROLLER_COMPUTER` and `STERN_COMPONENT_CONTROLLER_COMPUTER` folder to start either `(V/H)10T_(BOW/STERN).lua`
        + use `V10T_(BOW/STERN).lua` for `ten_thruster_template_vertical.nbt`
        + use `H10T_(BOW/STERN).lua` for `ten_thruster_template_horizontal.nbt`
-  5. Edit the `DRONE_DESIGNATION` and `DRONE_TO_COMPONENT_BROADCAST_CHANNEL` constants in the `(V/H)10T_(BOW/STERN).lua` scripts to serve the correct drone
-  6. Edit the `DRONE_ID` and `COMPONENT_TO_DRONE_CHANNEL` constants in the `MAIN_COMPUTER/firmwareScript.lua` file to match what we did in step 3
-  7. Run the `(V/H)10T_(BOW/STERN).lua` scripts on both the BOW & STERN Component Controllers (the two turtles around the main turtle). 
+  6. Edit the `DRONE_DESIGNATION` and `DRONE_TO_COMPONENT_BROADCAST_CHANNEL` constants in the `(V/H)10T_(BOW/STERN).lua` scripts to serve the correct drone
+  7. Edit the `DRONE_ID` and `COMPONENT_TO_DRONE_CHANNEL` constants in the `MAIN_COMPUTER/firmwareScript.lua` file to match what we did in step 3
+  8. Run the `(V/H)10T_(BOW/STERN).lua` scripts on both the BOW & STERN Component Controllers (the two turtles around the main turtle). 
        + The `startup.lua` script earlier should automatically run them when you boot up the turtles.
-  8. Run `firmwareScript.lua` in the Main Turtle. If everything goes well your drone should start hovering in place.
-  9. Test it with an ImpulseGun (VS2-Tournament) or grab it with a Gravitron (VS2-Clockwork). It should try and come back to its original position.
-  10. On the Main Turtle's terminal window, hit 'q' to safely stop the drone.
+  9. Run `firmwareScript.lua` in the Main Turtle. If everything goes well your drone should start hovering in place.
+  10. Test it with an ImpulseGun (VS2-Tournament) or grab it with a Gravitron (VS2-Clockwork). It should try and come back to its original position.
+  11. On the Main Turtle's terminal window, hit 'q' to safely stop the drone.
       + Send the "hush" command over rednet to shut it down remotely.
 
 ## HOW TO MODIFY FLIGHT BEHAVIOR
@@ -182,6 +183,86 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
     end
     
     ...
+
+## HOW TO BUILD ON TOP OF DEFAULT SHIP TEMPLATES
+
+Before you decide to add more blocks to the template lets talk about Inertia Tensors for a second shall we?
+	
+Inertia tensors are something that we use to calculate how much torque we need to spin a ship in a certain way.
+
+what blocks you use and where you put it around a ship "adds" to the ships inertia tensor.
+
+These DEFAULT SHIP TEMPLATES that I made for you guys already have their own pre-calculated inertia tensors. 
+That's why they're stable enough to fly on their own right out of the box.
+
+We might have been able to get away with adding one block to our ship earlier but if we want to add more blocks 
+we would need to calculate new inertia tensors for our ship.
+
+Until VS2-Computers releases the next update to get the ships inertia tensors for us,
+we need to calculate it ourselves for the time being.
+
+I made a separate java project to do just that:
+https://github.com/19PHOBOSS98/TILT_SHIP_MINECRAFT_SCHEMATIC_INERTIA_TENSOR_CALCULATOR
+
+Once you're done building and calculated your ships' new Inertia tensors copy them to the `ship_constants_config` table in our `firmwareScript`:
+
+```
+...
+
+ship_constants_config = {
+		DRONE_ID = 420,
+		LOCAL_INERTIA_TENSOR = 
+		{
+		x=vector.new(136646.51503523337,-9.454405916416484,-14.304751273285392),
+		y=vector.new(-9.454405916416484,46999.84092653317,-9393.157747854602),
+		z=vector.new(-14.304751273285392,-9393.157747854602,92866.67131793764)
+		},
+		LOCAL_INV_INERTIA_TENSOR = 
+		{
+		x=vector.new(7.318152495530465E-6,1.7324144970439088E-9,1.302482280966349E-9),
+		y=vector.new(1.7324144970439094E-9,2.1715643027917508E-5,2.1964659919891727E-6),
+		z=vector.new(1.3024822809663507E-9,2.1964659919891753E-6,1.099029130362614E-5)
+		},
+	},
+
+...
+
+```
+
+You might decide to use higher tier Tournament thrusters or reconfigure the `thrusterSpeed` settings from the Tournament Mod configs for your new ship.
+If you do, make sure to let the drone know about it by overriding the drones' `MOD_CONFIGURED_THRUSTER_SPEED` and `THRUSTER_TIER` settings in the `ship_constants_config` table.
+
+The default ship templates that I provided (`TenThrusterTemplateHorizontal` and `TenThrusterTemplateVertical`) have these values at `10'000` and `2` respectively by default.
+
+```
+...
+
+ship_constants_config = {
+		DRONE_ID = 420,
+
+		LOCAL_INERTIA_TENSOR = 
+		{
+		x=vector.new(136646.51503523337,-9.454405916416484,-14.304751273285392),
+		y=vector.new(-9.454405916416484,46999.84092653317,-9393.157747854602),
+		z=vector.new(-14.304751273285392,-9393.157747854602,92866.67131793764)
+		},
+		LOCAL_INV_INERTIA_TENSOR = 
+		{
+		x=vector.new(7.318152495530465E-6,1.7324144970439088E-9,1.302482280966349E-9),
+		y=vector.new(1.7324144970439094E-9,2.1715643027917508E-5,2.1964659919891727E-6),
+		z=vector.new(1.3024822809663507E-9,2.1964659919891753E-6,1.099029130362614E-5)
+		},
+
+    MOD_CONFIGURED_THRUSTER_SPEED = 10000,
+		THRUSTER_TIER = 5,
+	},
+
+...
+
+```
+
+
+
 ## DEFAULT TILT-SHIP FRAMEWORK
 
 * DroneBaseClass
