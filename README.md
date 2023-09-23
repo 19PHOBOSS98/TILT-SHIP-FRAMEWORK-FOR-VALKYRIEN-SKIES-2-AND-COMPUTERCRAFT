@@ -30,7 +30,7 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
   10. On the Main Turtle's terminal window, hit 'q' to safely stop the drone.
       + Send the "hush" command over rednet to shut it down remotely.
 
-### HOW TO MODIFY FLIGHT BEHAVIOR
+## HOW TO MODIFY FLIGHT BEHAVIOR
   1. Open `MAIN_COMPUTER/firmwareScript.lua` with your preferred text editor
   2. Scroll down to the `drone` instance and override its `customFlightLoopBehavior()` function
 
@@ -43,8 +43,8 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
     
     drone:run()
     ...
-    
-  3. To move the ship to a new world position set the drone's `target_global_position` variable
+  ### POSITIONING
+  To move the ship to a new world position set the drone's `target_global_position` variable
 
     ...
      
@@ -56,44 +56,51 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
     
     ...
 
-  4. Run `firmwareScript.lua` in the Main Turtle. The ship should start moving to the new position
-  5. Safely stop the drone by hitting 'q' on the Main Turtle's terminal
-  6. Place a Redstone Lamp at the front of the Main Turtle
-  7. Use `position_error` and `rotation_error` to gauge how far away the ship is from its target position and rotation
+  Run `firmwareScript.lua` in the Main Turtle. The ship should start moving to the new position
 
-    ...
-     
-    local new_pos = vector.new(17,-48,10)
-    
-    function drone:customFlightLoopBehavior()
-      self.target_global_position = new_pos
-      
-      if (self.position_error:length()<0.5) then
-        redstone.setAnalogOutput("front",15)
-      else
-        redstone.setAnalogOutput("front",0)
-      end
-      
-    end
-    
-    ...
-    
-  5. Restart the script.
-      + the lamp should light up when the drone reaches its target position and shut off when it's not
-      + try pulling the drone away to watch the lamp react to the change in position
+  ### ORIENTING
   6. Use `target_rotation` to set the drones orientation. 
       + Remember this variable accepts quaternions
-
+      + [a quick quaternion refresher](https://youtu.be/1yoFjjJRnLY?si=DR1MBM3ReQFn6nXj)
     ...
      
     local new_pos = vector.new(17,-48,10)
     
+    local upward = vector.new(0,1,0)
+    
+    function drone:customFlightLoopBehavior()
+    
+      self.target_global_position = new_world_pos
+      self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), upward)*self.target_rotation
+
+    end
+    
+    ...
+    
+  7. Restart the script.
+      + The drone should point upwards when it gets to position and westward when it's not
+      + Pull the drone away and watch it travel towards the target position while pointing to the west the whole time
+  
+  ### REACTING TO CHANGES IN POSITION AND ROTATION
+  1. Place a Redstone Lamp at the front of the Main Turtle
+  2. Use `position_error` and `rotation_error` to gauge how far away the ship is from its target position and rotation
+      + `position_error` (vector3)
+      + `rotation_error` (quaternion)
+    ...
+     
+    local new_pos = vector.new(17,-48,10)
+
+    local upward = vector.new(0,1,0)
+    local west = vector.new(-1,0,0)
+    
     function drone:customFlightLoopBehavior()
       self.target_global_position = new_pos
+      self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), upward)*self.target_rotation
       
       if (self.position_error:length()<0.5) then
-        redstone.setAnalogOutput("front",15)
-        self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), upward)*self.target_rotation
+        if (self.rotation_error:length()<1) then
+          redstone.setAnalogOutput("front",15)
+        end
       else
         redstone.setAnalogOutput("front",0)
       end
@@ -101,9 +108,80 @@ but there is a test build available in the [Valkyrien Skies 2 Discord server](ht
     end
     
     ...
-    
-  7. 
 
+  3. Restart the script.
+      + the lamp should light up when the drone reaches its target position and shut off when it's not
+      + try pulling the drone away to watch the lamp react to the change in position
+
+  ### SEQUENCING
+  Note that you SHOULD NOT use anything that YIELDS in `customFlightLoopBehavior`. That includes `os.sleep()`, so we need to be a bit more creative in adding sequenced actions.
+  The following flight behavior sequences the drone as follows:
+  1. fly to world position ( starting at: (17,-48,10) )
+      + pointing to the west
+      + lamp off
+  2. when world position is reached:
+      + turn lamp on
+      + reorient to point upward
+  3. when ship is finished reorienting:
+      + hold position for 7 seconds
+  4. when timer finishes:
+      + switch `target_position` to next waypoint
+  5. repeat
+    
+    ...
+    
+    local new_world_pos = vector.new(17,-48,10)
+    
+    local waypoints = {
+      vector.new(15,-48,15),
+      vector.new(-15,-48,15),
+      vector.new(-15,-48,-15),
+      vector.new(15,-48,-15),
+    }
+    
+    local upward = vector.new(0,1,0)
+    local west = vector.new(-1,0,0)
+    
+    local prev_time = os.clock()
+    local inc = 1
+    local timer = 0
+    local delay = 7 --seconds
+    
+    function drone:customFlightLoopBehavior()
+    
+      self.target_global_position = new_world_pos
+      
+      if (self.position_error:length()<0.5) then
+      
+        redstone.setAnalogOutput("front",15)
+        
+        self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), upward)*self.target_rotation
+        
+        if (self.rotation_error:length()<1) then
+          local current_time = os.clock()
+          timer = timer + (current_time - prev_time)
+          prev_time = current_time
+          
+          if (timer >= delay) then
+            if (inc <= #waypoints) then
+              new_world_pos = waypoints[inc]
+              inc = inc + 1
+            end
+          end
+          timer = math.fmod(timer,delay)
+        end
+        
+      else
+      
+        redstone.setAnalogOutput("front",0)
+        self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(), west)*self.target_rotation
+        timer = 0
+        
+      end
+    
+    end
+    
+    ...
 ## DEFAULT TILT-SHIP FRAMEWORK
 
 * DroneBaseClass
