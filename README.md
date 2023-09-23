@@ -193,7 +193,9 @@ Inertia tensors are something that we use to calculate how much torque we need t
 The kind of blocks you use and where you put it around a ship "adds" to the ships inertia tensor.
 
 Here are a few quick videos if you want to learn more about them:
+
 [What Are Inertia Tensors?](https://youtu.be/Ch-VTxTIt0E?si=3AP0bUOdv7Ck5koE)
+
 [Understanding How Inertia Tensors Are Calculated?](https://youtu.be/SbTSATs-DBA?si=6KFKVtuJIv3T1f6t)
 
 These DEFAULT SHIP TEMPLATES that I made for you guys already have their own pre-calculated inertia tensors. 
