@@ -9,7 +9,9 @@ YOU HAVE BEEN WARNED
 
 It's not out yet since the making of this post
 
-but there is a test build that you can get. It's pinned in the `Tournament` channel over at the [Valkyrien Skies 2 Discord server](https://discord.com/invite/dWwM8G3)
+but there is a test build that you can get. It's pinned in the `Tournament` channel
+
+over at the [Valkyrien Skies 2 Discord server](https://discord.com/invite/dWwM8G3)
 
 ## TUTORIAL WORLD DOWNLOAD
 Planet Minecraft:
