@@ -15,7 +15,7 @@ over at the [Valkyrien Skies 2 Discord server](https://discord.com/invite/dWwM8G
 
 ## TUTORIAL WORLD DOWNLOAD
 Planet Minecraft:
-
+https://www.planetminecraft.com/project/tilt-ship-tutorial-part-1-world-save/
 
 ## HOW TO SETUP DEFAULT SHIP TEMPLATES
   1. Prepare 3 CC(ComputerCraft):Turtles with Wireless Modems. 
