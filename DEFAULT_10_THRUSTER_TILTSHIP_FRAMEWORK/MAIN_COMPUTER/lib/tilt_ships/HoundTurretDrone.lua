@@ -113,7 +113,7 @@ function HoundTurretDrone:customFlightLoopBehavior()
 		if (self.rc_variables.run_mode) then
 			local target_aim = self.aimTargeting.target.target_spatial
 			local target_orbit = self.orbitTargeting.target.target_spatial
-			self:debugProbe({rot_err=self.rotation_error,z=self.target_rotation:localPositiveZ()})
+			
 			--positioning
 			if (self.rc_variables.dynamic_positioning_mode) then
 				if (self.rc_variables.hunt_mode) then
@@ -164,7 +164,6 @@ function HoundTurretDrone:customFlightLoopBehavior()
 			end
 			
 			local aiming_vector = bullet_convergence_point:sub(self.ship_global_position)
-			
 			self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector:normalize())*self.target_rotation
 		end
 	else

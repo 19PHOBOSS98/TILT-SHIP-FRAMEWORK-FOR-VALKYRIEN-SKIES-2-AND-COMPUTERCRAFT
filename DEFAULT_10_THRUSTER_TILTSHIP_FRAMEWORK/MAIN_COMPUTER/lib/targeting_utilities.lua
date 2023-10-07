@@ -77,9 +77,13 @@ box_size)
 						if (list_size>1) then
 							local name = self.listScroller:getCurrentItem(scanned_player_names)
 							if (name) then
+								local prev_name = name
 								while (self.player_name_whitelist[name]) do
 									self.listScroller:skip()
 									name = self.listScroller:getCurrentItem(scanned_player_names)
+									if (prev_name == name) then
+										break
+									end
 								end
 								return self.getTargetSpatials(self,name)
 							end
@@ -159,10 +163,15 @@ function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_sh
 							local ship = self.listScroller:getCurrentItem(scanned_ship_targets)
 							if (ship) then
 								local ship_id = tostring(ship.id)
+								local prev_ship_id = ship_id
 								while (self.ship_id_whitelist[ship_id]) do
+									
 									self.listScroller:skip()
 									ship = self.listScroller:getCurrentItem(scanned_ship_targets)
-									ship_id = ship.id
+									ship_id = tostring(ship.id)
+									if (ship_id == prev_ship_id) then
+										break
+									end
 								end
 								return self.listScroller:getCurrentItem(scanned_ship_targets)
 							end

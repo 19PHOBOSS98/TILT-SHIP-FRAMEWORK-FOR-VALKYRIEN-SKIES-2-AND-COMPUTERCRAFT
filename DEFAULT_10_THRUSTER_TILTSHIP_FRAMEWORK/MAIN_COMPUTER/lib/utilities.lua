@@ -82,7 +82,7 @@ function utilities.quadraticSolver(a,b,c)--at^2 + bt + c = 0
 	local denominator = 2*a
 	
 	if (discriminator==0) then
-		sol_1 = -b/d
+		sol_1 = -b/denominator
 		return discriminator,sol_1,sol_1
 	elseif (discriminator>0) then
 		sol_1 = ((-b)+discriminator_squareroot)/denominator

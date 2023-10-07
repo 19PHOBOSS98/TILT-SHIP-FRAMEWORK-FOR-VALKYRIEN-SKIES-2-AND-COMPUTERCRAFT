@@ -282,19 +282,27 @@ function DroneBaseClass:initRadar(radar_config)
 	ship_id_whitelist={
 		[tostring(self.ship_constants.MY_SHIP_ID)]=true,
 		[tostring(radar_config.designated_ship_id)]=true,
-		unpack(radar_config.ship_id_whitelist)
 	},
+	
+	
 	
 	--players excluded from being aimed at
 	player_name_whitelist={
 		[tostring(radar_config.designated_player_name)]=true,
-		unpack(radar_config.player_name_whitelist)
 	},
 	
 	--player detector range is defined by a box area around the turret
 	player_radar_box_size=radar_config.player_radar_box_size or 50,
 	ship_radar_range=radar_config.ship_radar_range or 500
 	}
+	
+	for id,validation in pairs(radar_config.ship_id_whitelist) do
+		radar_arguments.ship_id_whitelist[id] = validation
+	end
+	
+	for name,validation in pairs(radar_config.player_name_whitelist) do
+		radar_arguments.player_name_whitelist[name] = validation
+	end
 	
 	self.radars = RadarSystems(radar_arguments)
 	self.aimTargeting = TargetingSystem(self.com_channels.EXTERNAL_AIM_TARGETING_CHANNEL,"PLAYER",false,false,self.radars)
@@ -408,7 +416,7 @@ function DroneBaseClass:applyRedStonePower(lin_mv,rot_mv)
 		rot_z_p = max(0,rot_mv.z),
 		rot_z_n = abs(min(0,rot_mv.z))
 	}
-
+	
 	local component_control_msg = self:composeComponentMessage(linear,angular)
 	
 	self:communicateWithComponent(component_control_msg)
@@ -701,7 +709,7 @@ function DroneBaseClass:calculateMovement()
 		calculated_linear_RS_PID.z = calculated_linear_RS_PID.z*linear_acceleration_to_redstone_coefficient.z
 		
 		calculated_linear_RS_PID = linear_pwm:run(calculated_linear_RS_PID)
-		--self:debugProbe({calculated_linear_RS_PID=calculated_linear_RS_PID})
+		--self:debugProbe({calculated_angular_RS_PID=calculated_angular_RS_PID})
 		self:applyRedStonePower(calculated_linear_RS_PID,calculated_angular_RS_PID)
 		
 		sleep(min_time_step)
