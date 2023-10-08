@@ -637,6 +637,7 @@ function DroneBaseClass:calculateMovement()
 	
 	
 	--PID Controllers--
+	
 	local pos_PID = pidcontrollers.PID_Continuous_Vector(	self.ship_constants.PID_SETTINGS.POS.P,
 											self.ship_constants.PID_SETTINGS.POS.I,
 											self.ship_constants.PID_SETTINGS.POS.D,
@@ -654,8 +655,29 @@ function DroneBaseClass:calculateMovement()
 													self.ship_constants.PID_SETTINGS.ROT.Z.I,
 													self.ship_constants.PID_SETTINGS.ROT.Z.D,
 													-max_angular_acceleration.z,max_angular_acceleration.z)
+	--[[
+	local pos_PID = pidcontrollers.PID_Discrete_Vector(	self.ship_constants.PID_SETTINGS.POS.P,
+											self.ship_constants.PID_SETTINGS.POS.I,
+											self.ship_constants.PID_SETTINGS.POS.D,
+											-max_linear_acceleration,max_linear_acceleration,
+											min_time_step)
 
-
+	local rot_x_PID = pidcontrollers.PID_Discrete_Scalar(self.ship_constants.PID_SETTINGS.ROT.X.P,
+													self.ship_constants.PID_SETTINGS.ROT.X.I,
+													self.ship_constants.PID_SETTINGS.ROT.X.D,
+													-max_angular_acceleration.x,max_angular_acceleration.x,
+													min_time_step)
+	local rot_y_PID = pidcontrollers.PID_Discrete_Scalar(self.ship_constants.PID_SETTINGS.ROT.Y.P,
+													self.ship_constants.PID_SETTINGS.ROT.Y.I,
+													self.ship_constants.PID_SETTINGS.ROT.Y.D,
+													-max_angular_acceleration.y,max_angular_acceleration.y,
+													min_time_step)
+	local rot_z_PID = pidcontrollers.PID_Discrete_Scalar(self.ship_constants.PID_SETTINGS.ROT.Z.P,
+													self.ship_constants.PID_SETTINGS.ROT.Z.I,
+													self.ship_constants.PID_SETTINGS.ROT.Z.D,
+													-max_angular_acceleration.z,max_angular_acceleration.z,
+													min_time_step)
+	]]--
 	--Error Based Distributed PWM Algorithm by NikZapp for finer control over redstone thrusters--
 	local linear_pwm = utilities.pwm()
 	local angular_pwm = utilities.pwm()
@@ -718,8 +740,7 @@ end
 
 function DroneBaseClass:updateTargetingSystem()
 	while self.run_firmware do
-		self.aimTargeting:updateTarget()
-		self.orbitTargeting:updateTarget()
+		self.radars:updateTargetingTables()
 		os.sleep(0.05)
 	end
 end

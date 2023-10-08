@@ -116,7 +116,7 @@ function TenThrusterTemplateVertical:composeComponentMessage(linear,angular)
 	local rot_xp_zn = angular.rot_x_p + angular.rot_z_n
 	local rot_xn_zn = angular.rot_x_n + angular.rot_z_n
 	local rot_xp_zp = angular.rot_x_p + angular.rot_z_p
-
+	
 	local BOW_U = clamp(linear.lin_y_p,0,15)
 	local BOW_CCF = clamp(ccf_common+rot_xp_zn,0,15) --angular.rot_y_p + angular.rot_x_p + angular.rot_z_n + linear.lin_z_p	+ linear.lin_x_p
 	local BOW_CCB  = clamp(ccb_common+rot_xn_zp,0,15)
@@ -131,7 +131,6 @@ function TenThrusterTemplateVertical:composeComponentMessage(linear,angular)
 	
 	return {cmd="move", 
 	drone_designation=self.ship_constants.DRONE_ID,
-	
 	BOW={BOW_U,BOW_CCF,BOW_CCB,BOW_CL,BOW_CR},
 	STERN={STERN_D,STERN_CCF,STERN_CCB,STERN_CL,STERN_CR}}
 end

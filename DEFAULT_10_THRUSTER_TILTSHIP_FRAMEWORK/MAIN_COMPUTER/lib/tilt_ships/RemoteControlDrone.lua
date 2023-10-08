@@ -118,7 +118,6 @@ function RemoteControlDrone:setSettings(new_settings)
 		elseif (var_name == "use_external_orbit") then
 			self:useExternalRadar(false,new_setting)
 		elseif (var_name == "aim_target_mode") then
-			print("gg aim_target_mode: ",new_setting)
 			self:setTargetMode(true,new_settings.aim_target_mode)
 		elseif (var_name == "orbit_target_mode") then
 			self:setTargetMode(false,new_settings.orbit_target_mode)

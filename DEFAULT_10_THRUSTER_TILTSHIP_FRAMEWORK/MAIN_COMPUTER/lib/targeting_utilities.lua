@@ -48,9 +48,16 @@ box_size)
 		player_name_whitelist = player_name_whitelist,
 		listScroller = IndexedListScroller(),
 		
+		
+		
 		setBoxRadarAreaSize = function(self,size)
 			self.box_radar_area = vector.new(1,1,1):mul(size/2)
 		end,
+		
+		getTargetSpatials = function(self,name)
+			return self.player_radar_component.getPlayerPos(name)
+		end,
+		
 		getTargetList = function(self)
 			if (self.player_radar_component) then
 				local center = self.ship_reader_component.getWorldspacePosition()
@@ -62,13 +69,20 @@ box_size)
 			end
 			return nil
 		end,
-		getTargetSpatials = function(self,name)
-			return self.player_radar_component.getPlayerPos(name)
+		
+		targets = {},
+		
+		current_target_player = {},
+		
+		updateTargets = function(self)
+			self.targets = self:getTargetList(self)
+			current_target_player = self:getTargetSpatials(self.designated_player_name)
 		end,
+		
 		getTarget=function(self,is_auto_aim)
 			if (peripheral.find("playerDetector")) then
 				if (is_auto_aim) then
-					local scanned_player_names = self.getTargetList(self)
+					local scanned_player_names = self.targets
 					if (scanned_player_names) then
 						local list_size = #scanned_player_names
 						
@@ -90,8 +104,9 @@ box_size)
 						end
 					end
 				else
-					return self.getTargetSpatials(self,self.designated_player_name)
+					return current_target_player
 				end
+
 			end
 			return nil
 		end,
@@ -142,9 +157,7 @@ function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_sh
 		ship_id_whitelist = ship_id_whitelist,
 		prev_designated_ship_id = designated_ship_id,
 		listScroller = IndexedListScroller(),
-		getTargetList = function(self)
-			return self.ship_radar_component.scan(self.range)[1]
-		end,
+		
 		getTargetSpatials = function(self,target_list,target_ship_id)
 			for i,trg in ipairs(target_list) do
 				if (trg.id == target_ship_id) then
@@ -152,9 +165,20 @@ function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_sh
 				end
 			end
 		end,
+		
+		getTargetList = function(self)
+			return self.ship_radar_component.scan(self.range)[1]
+		end,
+		
+		targets = {},
+		
+		updateTargetList = function(self)
+			self.targets = self:getTargetList(self)
+		end,
+		
 		getTarget=function(self,is_auto_aim)
 			if (peripheral.find("radar")) then
-				local scanned_ship_targets = self.getTargetList(self)
+				local scanned_ship_targets = self.targets
 				if (scanned_ship_targets) then
 					local list_size = #scanned_ship_targets
 					self.listScroller:updateListSize(list_size)
@@ -176,6 +200,7 @@ function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_sh
 								return self.listScroller:getCurrentItem(scanned_ship_targets)
 							end
 						else
+
 							if (type(scanned_ship_targets) == "table") then
 								for i,trg in ipairs(scanned_ship_targets) do
 									if (tostring(trg.id) == tostring(self.designated_ship_id)) then
@@ -184,8 +209,9 @@ function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_sh
 								end
 							end
 							self.designated_ship_id = self.prev_designated_ship_id
-							
 							return nil
+
+							
 						end
 					end
 				end
@@ -248,13 +274,18 @@ function targeting_utilities.RadarSystems(radar_arguments)
 											radar_arguments.ship_id_whitelist,
 											radar_arguments.ship_radar_range),
 		targeted_players_undetected = false,
-		targeted_ships_undetected = false,		
-		getRadarTargets = function(self,trg_mode,args)
-			
+		targeted_ships_undetected = false,
+		
+		updateTargetingTables = function(self)
+			self.onboardPlayerRadar:updateTargets()
+			self.onboardShipRadar:updateTargetList()
+			--self.onboardEntityRadar:updateTargetList() --not implemented yet
+		end,
+		
+		getRadarTarget = function(self,trg_mode,args)
 			case =
 				{
 				["PLAYER"] = function (is_auto_aim)
-								
 								local player = self.onboardPlayerRadar:getTarget(is_auto_aim)
 								
 								if (player and next(player) ~= nil) then
@@ -275,8 +306,7 @@ function targeting_utilities.RadarSystems(radar_arguments)
 								if (ship) then
 									self.targeted_ships_undetected = false
 									local target_rot = ship.rotation
-									target_rot = quaternion.new(target_rot.w,target_rot.x,target_rot.y,target_rot.z)
-									return {orientation=target_rot,
+									return {orientation=quaternion.new(target_rot.w,target_rot.x,target_rot.y,target_rot.z),
 											position=ship.position,
 											velocity=ship.velocity}
 								end
@@ -287,7 +317,7 @@ function targeting_utilities.RadarSystems(radar_arguments)
 								return nil
 							end,
 				 default = function (arguments)
-							print("getRadarTargets: default case executed")   
+							print("getRadarTarget: default case executed")   
 							return nil
 						end,
 				}
@@ -384,30 +414,30 @@ function targeting_utilities.TargetingSystem(
 		
 		use_external_radar = use_external_radar,
 		
-		target = targeting_utilities.TargetSpatialAttributes(),
+		current_target = targeting_utilities.TargetSpatialAttributes(),
 		
 		radarSystems = radarSystems,
 		
 		TARGET_MODE = {"PLAYER","SHIP","ENTITY"},
 		
-		updateTarget=function(self)
+		getTargetSpatials = function(self)
 			if (self.use_external_radar) then
 				local _, _, senderChannel, _, message, _ = os.pullEvent("modem_message")
 				if (senderChannel == external_targeting_system_channel) then
 					if (message.trg) then
-						self.target:updateTargetSpatials(message.trg)
+						self.current_target:updateTargetSpatials(message.trg)
 					end
 				end
 			else
-				local spatial_attributes = self.radarSystems:getRadarTargets(self.targeting_mode,self.auto_aim_active)
+				local spatial_attributes = self.radarSystems:getRadarTarget(self.targeting_mode,self.auto_aim_active)
 				if(spatial_attributes == nil and self.targeting_mode == self.TARGET_MODE[2]) then
-					--print("cant find you","is_aim: ",self.auto_aim_active)
 					self.targeting_mode = self.TARGET_MODE[1]
-					spatial_attributes = self.radarSystems:getRadarTargets(self.targeting_mode,self.auto_aim_active)
+					spatial_attributes = self.radarSystems:getRadarTarget(self.targeting_mode,self.auto_aim_active)
 				end
 				
-				self.target:updateTargetSpatials(spatial_attributes)
+				self.current_target:updateTargetSpatials(spatial_attributes)
 			end
+			return self.current_target.target_spatial
 		end,
 		
 		setAutoAimActive = function(self,lock_true,mode)
@@ -466,5 +496,5 @@ return targeting_utilities
 	end
 	
 	
-	aimTargeting.target.target_spatial
+	aimTargeting.current_target.target_spatial
 	]]--

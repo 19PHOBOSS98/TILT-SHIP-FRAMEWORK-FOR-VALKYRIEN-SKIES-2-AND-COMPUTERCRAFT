@@ -111,36 +111,30 @@ function HoundTurretDrone:customFlightLoopBehavior()
 	
 	if(not self.radars.targeted_players_undetected) then
 		if (self.rc_variables.run_mode) then
-			local target_aim = self.aimTargeting.target.target_spatial
-			local target_orbit = self.orbitTargeting.target.target_spatial
+			local target_aim = self.aimTargeting:getTargetSpatials()
+			local target_orbit = self.orbitTargeting:getTargetSpatials()
 			
-			--positioning
-			if (self.rc_variables.dynamic_positioning_mode) then
-				if (self.rc_variables.hunt_mode) then
-					self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim.position,15)
-					--[[
-					--position the drone behind target player's line of sight--
-					local formation_position = aim_target.orientation:rotateVector3(vector.new(0,0,15))
-					target_global_position = formation_position:add(aim_target.position)
-					]]--
-					
-				else --guard_mode
-					local formation_position = target_orbit.orientation:rotateVector3(self.rc_variables.orbit_offset)
-					self.target_global_position = formation_position:add(target_orbit.position)
-				end
-				
-			end
-
+			local target_aim_position = target_aim.position
+			local target_aim_velocity = target_aim.velocity
+			local target_aim_orientation = target_aim.orientation
+			
+			local target_orbit_position = target_orbit.position
+			local target_orbit_orientation = target_orbit.orientation
+			
 			--Aiming
 			local bullet_convergence_point = vector.new(0,1,0)
 			if (self:getAutoAim()) then
-				bullet_convergence_point = getTargetAimPos(target_aim.position,target_aim.velocity,self.ship_global_position,self.ship_global_velocity,self.bullet_velocity_squared)
+				bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,self.bullet_velocity_squared)
 				if (self.rotation_error:length() < 0.5) then --only fire when aim is close enough
 					self:fire_guns(self.rc_variables.weapons_free)
 				else
 					self:fire_guns(false)
 				end
 			else	--Manual Aiming
+				--[[aim_z = target_orbit_orientation:localPositiveZ()
+				bullet_convergence_point = target_orbit_position:add(aim_z:mul(self.bulletRange:get()))
+				self:debugProbe({bullet_convergence_point=bullet_convergence_point})
+				]]--
 				
 				--burst fire
 				local current_time = os.clock()
@@ -152,19 +146,48 @@ function HoundTurretDrone:customFlightLoopBehavior()
 				self:fire_guns(not_on_cooldown and self.rc_variables.weapons_free)
 				self.prev_time = current_time
 			
-				local aim_z = target_aim.orientation:localPositiveZ()
-				aim_target_mode = self:getTargetMode(true)
-				orbit_target_mode = self:getTargetMode(false)
-				if (aim_target_mode == "PLAYER" and orbit_target_mode == "SHIP" and self.rc_variables.player_mounting_ship) then
-					aim_z = target_orbit.orientation:rotateVector3(aim_z)
+				
+				local aim_target_mode = self:getTargetMode(true)
+				local orbit_target_mode = self:getTargetMode(false)
+				
+				local aim_z = vector.new()
+				if (aim_target_mode == orbit_target_mode) then
+					aim_z = target_orbit_orientation:localPositiveZ()
+					bullet_convergence_point = target_orbit_position:add(aim_z:mul(self.bulletRange:get()))
+				else
+					aim_z = target_aim_orientation:localPositiveZ()
+					if (self.rc_variables.player_mounting_ship) then
+						aim_z = target_orbit_orientation:rotateVector3(aim_z)
+					end
+					bullet_convergence_point = target_aim_position:add(aim_z:mul(self.bulletRange:get()))
 				end
-				bullet_convergence_point = target_aim.position:add(aim_z:mul(self.bulletRange:get()))
 				
 				
 			end
 			
 			local aiming_vector = bullet_convergence_point:sub(self.ship_global_position)
 			self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector:normalize())*self.target_rotation
+			
+						--positioning
+			if (self.rc_variables.dynamic_positioning_mode) then
+				if (self.rc_variables.hunt_mode) then
+					self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,15)
+					--[[
+					--position the drone behind target player's line of sight--
+					local formation_position = aim_target.orientation:rotateVector3(vector.new(0,0,15))
+					target_global_position = formation_position:add(aim_target.position)
+					]]--
+					
+				else --guard_mode
+					local formation_position = target_orbit_orientation:rotateVector3(self.rc_variables.orbit_offset)
+					--self:debugProbe({target_orbit_position=target_orbit_position})
+					self.target_global_position = formation_position:add(target_orbit_position)
+				end
+				
+			end
+
+			
+			
 		end
 	else
 		self:fire_guns(false)
