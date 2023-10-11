@@ -126,4 +126,22 @@ function utilities.IntegerScroller(value,minimum,maximum)
 	}
 end
 
+
+function utilities.NonBlockingCooldownTimer(cooldown)
+	return{
+		count = 0,
+		prev_time=os.clock(),
+		cooldown=cooldown,
+		start=function(self)
+			self.prev_time=os.clock()
+			self.count = 0
+		end,
+		increment=function(self)
+			local curr_time = os.clock()
+			self.count = math.fmod(self.count + (curr_time - self.prev_time),self.cooldown)
+			self.prev_time = curr_time
+		end,
+	}
+end
+
 return utilities

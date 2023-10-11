@@ -91,6 +91,12 @@ function DroneBaseClass:onResetRedstone() end
 function DroneBaseClass:communicateWithComponent(component_control_msg)
 	self.modem.transmit(self.com_channels.DRONE_TO_COMPONENT_BROADCAST_CHANNEL, self.com_channels.COMPONENT_TO_DRONE_CHANNEL,component_control_msg)
 end
+
+function DroneBaseClass:customThread()
+	while self.run_firmware do
+		return
+	end
+end
 --OVERRIDABLE FUNCTIONS--
 
 
@@ -109,7 +115,7 @@ function DroneBaseClass:initPeripherals()
 	self.shipreader = peripheral.find("ship_reader")
 	self.radar = peripheral.find("radar")
 	self.player_radar = peripheral.find("playerDetector")
-	self.modem = peripheral.find("modem")
+	self.modem = peripheral.find("modem", function(name, object) return object.isWireless() end)
 end
 
 function DroneBaseClass:initVariables()
@@ -755,6 +761,8 @@ function DroneBaseClass:checkInterupt()
 	end
 end
 
+
+
 function DroneBaseClass:run()
 	local execute = {
 		function()
@@ -768,6 +776,9 @@ function DroneBaseClass:run()
 		end,
 		function()
 			self:checkInterupt()
+		end,
+		function()
+			self:customThread()
 		end
 	}
 	parallel.waitForAny(unpack(execute))
