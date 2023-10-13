@@ -94,7 +94,11 @@ end
 
 function DroneBaseClass:customThread()
 	while self.run_firmware do
-		return
+		local event, key, isHeld = os.pullEvent("key")
+		if (key == keys.x) then
+			self:resetRedstone()
+			return
+		end
 	end
 end
 --OVERRIDABLE FUNCTIONS--
@@ -483,6 +487,10 @@ function DroneBaseClass:protocols(msg)
 		self:resetRedstone()
 		self.run_firmware = false
 	end,
+	["restart"] = function (args) --kill command
+		self:resetRedstone()
+		os.reboot()
+	end,
 	 default = function ()
 		self:customProtocols(msg)
 	end,
@@ -511,6 +519,7 @@ function DroneBaseClass:receiveCommand()
 			end
 		end
 	end
+	self:resetRedstone()
 end
 
 function DroneBaseClass:calculateMovement()
@@ -739,7 +748,6 @@ function DroneBaseClass:calculateMovement()
 		calculated_linear_RS_PID = linear_pwm:run(calculated_linear_RS_PID)
 		--self:debugProbe({calculated_angular_RS_PID=calculated_angular_RS_PID})
 		self:applyRedStonePower(calculated_linear_RS_PID,calculated_angular_RS_PID)
-		
 		sleep(min_time_step)
 	end
 end
@@ -749,6 +757,7 @@ function DroneBaseClass:updateTargetingSystem()
 		self.radars:updateTargetingTables()
 		os.sleep(0.05)
 	end
+	
 end
 
 function DroneBaseClass:checkInterupt()
@@ -759,9 +768,8 @@ function DroneBaseClass:checkInterupt()
 			return
 		end
 	end
+	
 end
-
-
 
 function DroneBaseClass:run()
 	local execute = {
@@ -782,6 +790,7 @@ function DroneBaseClass:run()
 		end
 	}
 	parallel.waitForAny(unpack(execute))
+	
 end
 --THREAD FUNCTIONS--
 
