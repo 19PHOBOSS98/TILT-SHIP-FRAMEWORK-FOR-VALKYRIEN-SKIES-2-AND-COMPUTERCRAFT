@@ -6,7 +6,7 @@ local flight_utilities = require "lib.flight_utilities"
 local list_manager = require "lib.list_manager"
 
 local HoundTurretBase = require "lib.tilt_ships.HoundTurretBase"
-local TenThrusterTemplateVertical = require "lib.tilt_ships.TenThrusterTemplateVertical"
+local TenThrusterTemplateVerticalCompact = require "lib.tilt_ships.TenThrusterTemplateVerticalCompact"
 
 local sqrt = math.sqrt
 local abs = math.abs
@@ -35,29 +35,34 @@ local IntegerScroller = utilities.IntegerScroller
 local IndexedListScroller = list_manager.IndexedListScroller
 
 
-local HoundTurretLegacy = HoundTurretBase:subclass()
+local HoundTurretBaseInfiniteAmmo = HoundTurretBase:subclass()
+
 
 --overridden functions--
-function HoundTurretLegacy:setShipFrameClass(configs) --override this to set ShipFrame Template
-	self.ShipFrame = TenThrusterTemplateVertical(configs)
+function HoundTurretBaseInfiniteAmmo:setShipFrameClass(configs) --override this to set ShipFrame Template
+	self.ShipFrame = TenThrusterTemplateVerticalCompact(configs)
 end
 
-function HoundTurretBase:activateGun(index,toggle)
-	redstone.setOutput(index,toggle)
-end
-
-function HoundTurretLegacy:alternateFire(step)
+function HoundTurretBaseInfiniteAmmo:alternateFire(step)
 	local seq_1 = step==0
-	self:activateGun(bottom,seq_1)
+	local seq_2 = step==1
+	--{hub_index, redstoneIntegrator_index, side_index}
+	self:activateGun({"front",1,3},seq_1)
+	self:activateGun({"front",2,3},seq_1)
+	
+	self:activateGun({"front",1,4},seq_2)
+	self:activateGun({"front",2,4},seq_2)
+
 end
 
-function HoundTurretLegacy:overrideShipFrameCustomThread()
+function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomThread()
 	local htb = self
 	function self.ShipFrame:customThread()
 		sync_step = 0
 		while self.run_firmware do
 			if (htb.activate_weapons) then
 				htb:alternateFire(sync_step)
+				
 				sync_step = math.fmod(sync_step+1,2)
 			else
 				htb:reset_guns()
@@ -68,7 +73,7 @@ function HoundTurretLegacy:overrideShipFrameCustomThread()
 	end
 end
 
-function HoundTurretLegacy:init(instance_configs)
+function HoundTurretBaseInfiniteAmmo:init(instance_configs)
 	local configs = instance_configs
 	
 	configs.ship_constants_config = configs.ship_constants_config or {}
@@ -80,16 +85,15 @@ function HoundTurretLegacy:init(instance_configs)
 	--bare template--
 	configs.ship_constants_config.LOCAL_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INERTIA_TENSOR or
 	{
-		x=vector.new(78626.56144552086,0.0,0.0),
-		y=vector.new(0.0,38960.0,0.0),
-		z=vector.new(0.0,0.0,78626.56144552086)
+	x=vector.new(141669.52357258383,-3.979039320256561E-13,-300.0),
+	y=vector.new(-3.979039320256561E-13,65280.0,0.0),
+	z=vector.new(-300.0,0.0,135389.52357258383)
 	}
-	
 	configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR or
 	{
-		x=vector.new(1.271834837509567E-5,-0.0,-0.0),
-		y=vector.new(-0.0,2.566735112936345E-5,-0.0),
-		z=vector.new(-0.0,-0.0,1.271834837509567E-5)
+	x=vector.new(7.058714302503441E-6,4.3025278431554223E-23,1.5640902153080952E-8),
+	y=vector.new(4.3025278431554176E-23,1.53186274509804E-5,9.53366493127981E-26),
+	z=vector.new(1.5640902153080965E-8,9.533664931279822E-26,7.386130520907934E-6)
 	}
 	--bare template--
 	
@@ -97,27 +101,27 @@ function HoundTurretLegacy:init(instance_configs)
 	--[[
 	LOCAL_INERTIA_TENSOR = 
 	{
-	x=vector.new(112228.05236334566,-4.263256414560601E-13,0.0),
-	y=vector.new(-4.263256414560601E-13,50560.0,0.0),
-	z=vector.new(0.0,0.0,112228.05236334566)
+	x=vector.new(363679.29381836695,9.094947017729282E-13,0.0),
+	y=vector.new(9.094947017729282E-13,421000.0,1.0231815394945443E-12),
+	z=vector.new(0.0,1.0231815394945443E-12,358679.29381836683)
 	},
 	LOCAL_INV_INERTIA_TENSOR = 
 	{
-	x=vector.new(8.910428176748846E-6,7.513338623616703E-23,-0.0),
-	y=vector.new(7.5133386236167E-23,1.9778481012658228E-5,-0.0),
-	z=vector.new(-0.0,-0.0,8.910428176748846E-6)
-	},
+	x=vector.new(2.7496753788227273E-6,-5.9401785953319215E-24,1.694516852462093E-41),
+	y=vector.new(-5.940178595331924E-24,2.375296912114014E-6,-6.775857968885637E-24),
+	z=vector.new(1.6945168524620946E-41,-6.775857968885637E-24,2.788005935202923E-6)
+	}
 	]]--
 	--steampunk skin, paste in firmwareScript.lua--
 	
 	--unrotated inertia tensors--
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 
-	HoundTurretLegacy.superClass.init(self,configs)
+	HoundTurretBaseInfiniteAmmo.superClass.init(self,configs)
 end
 --overridden functions--
 
-function HoundTurretLegacy:overrideShipFrameCustomFlightLoopBehavior()
+function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomFlightLoopBehavior()
 	local htb = self
 	function self.ShipFrame:customFlightLoopBehavior()
 		--[[
@@ -130,7 +134,6 @@ function HoundTurretLegacy:overrideShipFrameCustomFlightLoopBehavior()
 		
 		--term.clear()
 		--term.setCursorPos(1,1)
-		
 		if(not self.radars.targeted_players_undetected) then
 			if (self.rc_variables.run_mode) then
 				local target_aim = self.aimTargeting:getTargetSpatials()
@@ -149,7 +152,8 @@ function HoundTurretLegacy:overrideShipFrameCustomFlightLoopBehavior()
 					bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
 					
 					--only fire when aim is close enough and if user says "fire"
-					htb.activate_weapons = (self.rotation_error:length() < 0.5) and self.rc_variables.weapons_free  
+					--self:debugProbe({rotation_error=self.rotation_error:length()})
+					htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free  
 					
 					
 				else	
@@ -176,13 +180,14 @@ function HoundTurretLegacy:overrideShipFrameCustomFlightLoopBehavior()
 				
 				
 				
-				local aiming_vector = bullet_convergence_point:sub(self.ship_global_position)
-				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector:normalize())*self.target_rotation
+				local aiming_vector = bullet_convergence_point:sub(self.ship_global_position):normalize()
+				
+				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector)*self.target_rotation
 				
 							--positioning
 				if (self.rc_variables.dynamic_positioning_mode) then
 					if (self.rc_variables.hunt_mode) then
-						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,15)
+						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,25)
 						--[[
 						--position the drone behind target player's line of sight--
 						local formation_position = aim_target.orientation:rotateVector3(vector.new(0,0,15))
@@ -208,5 +213,4 @@ function HoundTurretLegacy:overrideShipFrameCustomFlightLoopBehavior()
 
 end
 
-
-return HoundTurretLegacy
+return HoundTurretBaseInfiniteAmmo

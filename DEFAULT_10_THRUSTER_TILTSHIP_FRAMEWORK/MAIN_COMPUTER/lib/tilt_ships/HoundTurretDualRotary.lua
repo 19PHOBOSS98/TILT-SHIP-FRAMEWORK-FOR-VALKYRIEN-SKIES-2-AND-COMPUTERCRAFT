@@ -213,7 +213,7 @@ function HoundTurretDualRotary:overrideShipFrameCustomFlightLoopBehavior()
 				
 			end
 		else
-			self:reset_guns()
+			htb:reset_guns()
 		end
 		
 	end

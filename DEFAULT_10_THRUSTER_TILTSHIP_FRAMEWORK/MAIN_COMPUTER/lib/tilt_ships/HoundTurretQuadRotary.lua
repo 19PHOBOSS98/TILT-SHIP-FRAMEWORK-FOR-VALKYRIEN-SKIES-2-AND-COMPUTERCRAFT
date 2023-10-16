@@ -43,7 +43,6 @@ function HoundTurretQuadRotary:setShipFrameClass(configs) --override this to set
 	self.ShipFrame = TwelveThrusterTemplateVerticalCompact(configs)
 end
 
-
 function HoundTurretQuadRotary:alternateFire(step)
 	local seq_1 = step==0
 	local seq_2 = step==1
@@ -138,7 +137,6 @@ function HoundTurretQuadRotary:overrideShipFrameCustomFlightLoopBehavior()
 		
 		--term.clear()
 		--term.setCursorPos(1,1)
-		
 		if(not self.radars.targeted_players_undetected) then
 			if (self.rc_variables.run_mode) then
 				local target_aim = self.aimTargeting:getTargetSpatials()
@@ -157,7 +155,8 @@ function HoundTurretQuadRotary:overrideShipFrameCustomFlightLoopBehavior()
 					bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
 					
 					--only fire when aim is close enough and if user says "fire"
-					htb.activate_weapons = (self.rotation_error:length() < 0.5) and self.rc_variables.weapons_free  
+					--self:debugProbe({rotation_error=self.rotation_error:length()})
+					htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free  
 					
 					
 				else	
@@ -185,13 +184,13 @@ function HoundTurretQuadRotary:overrideShipFrameCustomFlightLoopBehavior()
 				
 				
 				local aiming_vector = bullet_convergence_point:sub(self.ship_global_position):normalize()
-				self:debugProbe({target_orbit_position=target_orbit_position})
+				
 				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector)*self.target_rotation
 				
 							--positioning
 				if (self.rc_variables.dynamic_positioning_mode) then
 					if (self.rc_variables.hunt_mode) then
-						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,15)
+						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,25)
 						--[[
 						--position the drone behind target player's line of sight--
 						local formation_position = aim_target.orientation:rotateVector3(vector.new(0,0,15))
@@ -210,7 +209,7 @@ function HoundTurretQuadRotary:overrideShipFrameCustomFlightLoopBehavior()
 				
 			end
 		else
-			self:reset_guns()
+			htb:reset_guns()
 		end
 		
 	end

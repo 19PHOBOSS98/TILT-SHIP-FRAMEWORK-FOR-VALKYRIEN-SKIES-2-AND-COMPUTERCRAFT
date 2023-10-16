@@ -14,10 +14,9 @@ local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
 
---only works with the BARE vertical_ten_thruster_template schematic--
 local TenThrusterTemplateVertical = RemoteControlDrone:subclass()
 
-function TenThrusterTemplateVertical:getOffsetDefaultShipOrientation(default_ship_orientation)
+function TenThrusterTemplateVertical:getOffsetDefaultShipOrientation(default_ship_orientation)-----------------------
 	return quaternion.fromRotation(default_ship_orientation:localPositiveY(), 45)*default_ship_orientation
 end
 
@@ -49,7 +48,6 @@ function TenThrusterTemplateVertical:init(instance_configs)
 	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000
 	
 	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 2
-	
 	
 	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or
 	{

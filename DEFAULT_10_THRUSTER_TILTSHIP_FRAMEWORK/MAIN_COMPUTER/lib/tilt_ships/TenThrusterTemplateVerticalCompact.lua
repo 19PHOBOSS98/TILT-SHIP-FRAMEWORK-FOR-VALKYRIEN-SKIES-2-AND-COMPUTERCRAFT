@@ -14,10 +14,9 @@ local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
 
---only works with the BARE vertical_ten_thruster_template schematic--
 local TenThrusterTemplateVerticalCompact = RemoteControlDrone:subclass()
 
-function TenThrusterTemplateVerticalCompact:getOffsetDefaultShipOrientation(default_ship_orientation)
+function TenThrusterTemplateVerticalCompact:getOffsetDefaultShipOrientation(default_ship_orientation)-----------------------
 	return quaternion.fromRotation(default_ship_orientation:localPositiveY(), 45)*default_ship_orientation
 end
 
@@ -26,33 +25,31 @@ function TenThrusterTemplateVerticalCompact:init(instance_configs)
 	
 	configs.ship_constants_config = configs.ship_constants_config or {}
 	
-	configs.ship_constants_config.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION = quaternion.fromRotation(vector.new(0,1,0), 45)
+	configs.ship_constants_config.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION = quaternion.fromRotation(vector.new(0,1,0), 45)-----------------------
 	
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 	--unrotated inertia tensors--
 	configs.ship_constants_config.LOCAL_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INERTIA_TENSOR or
 	{
-	x=vector.new(8400.0,0.0,0.0),
-	y=vector.new(0.0,3400.0,0.0),
-	z=vector.new(0.0,0.0,8200.0)
+		x=vector.new(8400.0,0.0,0.0),
+		y=vector.new(0.0,3400.0,0.0),
+		z=vector.new(0.0,0.0,8200.0)
 	}
 	
 	configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR or 
 	{
-	x=vector.new(1.1904761904761905E-4,-0.0,-0.0),
-	y=vector.new(-0.0,2.9411764705882345E-4,-0.0),
-	z=vector.new(-0.0,-0.0,1.2195121951219512E-4)
+		x=vector.new(1.1904761904761905E-4,-0.0,-0.0),
+		y=vector.new(-0.0,2.9411764705882345E-4,-0.0),
+		z=vector.new(-0.0,-0.0,1.2195121951219512E-4)
 	}
-	
 	--unrotated inertia tensors--
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 	
-	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000
+	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000-----------------------
 	
-	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 2
+	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 2-----------------------
 	
-	
-	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or
+	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or-----------------------
 	{
 		POS = {
 			P = 5,
@@ -79,11 +76,11 @@ function TenThrusterTemplateVerticalCompact:init(instance_configs)
 	}
 
 	--these values are specific for the vertical 10-thruster template--
-	configs.ship_constants_config.INV_ACTIVE_THRUSTERS_PER_LINEAR_MOVEMENT = vector.new(1/4,1/1,1/4)
-	configs.ship_constants_config.INV_ACTIVE_THRUSTERS_PER_ANGULAR_MOVEMENT = vector.new(1/4,1/4,1/4)
+	configs.ship_constants_config.INV_ACTIVE_THRUSTERS_PER_LINEAR_MOVEMENT = vector.new(1/4,1/1,1/4)-----------------------
+	configs.ship_constants_config.INV_ACTIVE_THRUSTERS_PER_ANGULAR_MOVEMENT = vector.new(1/4,1/4,1/4)-----------------------
 	
 	configs.ship_constants_config.ANGLED_THRUST_COEFFICIENT = vector.new(
-																		1/math.sin(math.pi/4),--lateral x-thrusters are at a 45 degree angle
+																		1/math.sin(math.pi/4),--lateral x-thrusters are at a 45 degree angle-----------------------
 																		1,--the ship is built vertical and the y-thrusters are aligned to the axis
 																		1/math.sin(math.pi/4))--lateral z-thrusters are at a 45 degree angle
 		
@@ -135,8 +132,6 @@ function TenThrusterTemplateVerticalCompact:composeComponentMessage(linear,angul
 		STERN={STERN_D,STERN_CCF,STERN_CCB,STERN_CL,STERN_CR}
 	}
 end
-
-
 
 local group_component_map = 
 {

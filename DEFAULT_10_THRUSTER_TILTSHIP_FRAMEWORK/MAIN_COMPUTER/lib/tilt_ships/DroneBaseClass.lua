@@ -515,6 +515,7 @@ function DroneBaseClass:receiveCommand()
 					--self:debugProbe({message.msg})
 					self:protocols(message.msg)
 					
+					
 				end
 			end
 		end
@@ -702,7 +703,7 @@ function DroneBaseClass:calculateMovement()
 	local customFlightVariables = self:customPreFlightLoopVariables()
 	
 	while self.run_firmware do
-
+		--self:debugProbe({rcvv=self.rc_variables})
 		self:customFlightLoopBehavior(customFlightVariables)
 
 		self.ship_rotation = self.shipreader.getRotation(true)

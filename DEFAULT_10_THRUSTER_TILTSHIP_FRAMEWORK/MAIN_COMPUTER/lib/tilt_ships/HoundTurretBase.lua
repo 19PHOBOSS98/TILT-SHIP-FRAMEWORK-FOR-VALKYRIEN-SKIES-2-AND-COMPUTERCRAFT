@@ -195,7 +195,7 @@ function HoundTurretBase:setHuntMode(mode)
 end
 
 function HoundTurretBase:alternateFire(toggle)
-	--{hub_index, controller_index, side_index}
+	--{hub_index, redstoneIntegrator_index, side_index}
 	self:activateGun({"top",1,1},toggle)
 	self:activateGun({"top",1,2},not toggle)
 	self:activateGun({"top",1,3},toggle)
@@ -212,6 +212,8 @@ function HoundTurretBase:initializeGunPeripherals()
 	
 	self.hub1 = peripheral.find("peripheral_hub",function(name,object) return name == "top" end)
 	self.hub2 = peripheral.find("peripheral_hub",function(name,object) return name == "bottom" end)
+	self.hub3 = peripheral.find("peripheral_hub",function(name,object) return name == "front" end)
+	self.hub4 = peripheral.find("peripheral_hub",function(name,object) return name == "back" end)
 	self.gun_controllers_hub = {}
 	
 	if(self.hub1) then
@@ -230,6 +232,30 @@ function HoundTurretBase:initializeGunPeripherals()
 		self.gun_controllers_hub["bottom"] = {peripheral.find("redstoneIntegrator",
 											function(name,object) 
 												for i,list_name in ipairs(self.hub2.getNamesRemote()) do
+													if (list_name == name) then
+														return true
+													end
+												end
+												return false
+											end)}
+	end
+	
+	if(self.hub3) then
+		self.gun_controllers_hub["front"] = {peripheral.find("redstoneIntegrator",
+											function(name,object) 
+												for i,list_name in ipairs(self.hub3.getNamesRemote()) do
+													if (list_name == name) then
+														return true
+													end
+												end
+												return false
+											end)}
+	end
+	
+	if(self.hub4) then
+		self.gun_controllers_hub["back"] = {peripheral.find("redstoneIntegrator",
+											function(name,object) 
+												for i,list_name in ipairs(self.hub4.getNamesRemote()) do
 													if (list_name == name) then
 														return true
 													end
@@ -359,7 +385,8 @@ function HoundTurretBase:overrideShipFrameCustomFlightLoopBehavior()
 					bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
 					
 					--only fire when aim is close enough and if user says "fire"
-					htb.activate_weapons = (self.rotation_error:length() < 0.5) and self.rc_variables.weapons_free  
+					
+					htb.activate_weapons = (self.rotation_error:length() < 2) and self.rc_variables.weapons_free  
 					
 					
 				else	
@@ -435,7 +462,7 @@ function HoundTurretBase:init(instance_configs)
 	
 	
 	custom_config = {
-		AUTOCANNON_BARREL_COUNT = 6,
+		AUTOCANNON_BARREL_COUNT = 7, --the recoil block counts as a barrel
 	}
 	self:initCustom(custom_config)
 	HoundTurretBase.superClass.init(self)

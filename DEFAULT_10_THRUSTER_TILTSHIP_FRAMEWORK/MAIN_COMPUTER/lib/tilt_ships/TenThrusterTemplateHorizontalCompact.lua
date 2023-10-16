@@ -14,8 +14,6 @@ local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
 
-
---only works with the BARE horizontal_ten_thruster_template schematic--
 local TenThrusterTemplateHorizontalCompact = RemoteControlDrone:subclass()
 
 function TenThrusterTemplateHorizontalCompact:getOffsetDefaultShipOrientation(default_ship_orientation)

@@ -14,10 +14,9 @@ local acos = math.acos
 local pi = math.pi
 local clamp = utilities.clamp
 
---only works with the BARE vertical_ten_thruster_template schematic--
 local TwelveThrusterTemplateVerticalCompact = RemoteControlDrone:subclass()
 
-function TwelveThrusterTemplateVerticalCompact:getOffsetDefaultShipOrientation(default_ship_orientation)
+function TwelveThrusterTemplateVerticalCompact:getOffsetDefaultShipOrientation(default_ship_orientation)-----------------------
 	return quaternion.fromRotation(default_ship_orientation:localPositiveY(), 45)*default_ship_orientation
 end
 
@@ -26,32 +25,31 @@ function TwelveThrusterTemplateVerticalCompact:init(instance_configs)
 	
 	configs.ship_constants_config = configs.ship_constants_config or {}
 	
-	configs.ship_constants_config.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION = quaternion.fromRotation(vector.new(0,1,0), 45)
+	configs.ship_constants_config.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION = quaternion.fromRotation(vector.new(0,1,0), 45)-----------------------
 	
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 	--unrotated inertia tensors--
 	configs.ship_constants_config.LOCAL_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INERTIA_TENSOR or
 	{
-	x=vector.new(12400.0,-3.9600817442094793E-28,-2.413298072394092E-28),
-	y=vector.new(-3.9600817442094793E-28,5000.0,5.329070518200357E-15),
-	z=vector.new(-2.413298072394092E-28,5.329070518200357E-15,13800.0)
+		x=vector.new(12400.0,-3.9600817442094793E-28,-2.413298072394092E-28),
+		y=vector.new(-3.9600817442094793E-28,5000.0,5.329070518200357E-15),
+		z=vector.new(-2.413298072394092E-28,5.329070518200357E-15,13800.0)
 	}
 	
 	configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR or 
 	{
-	x=vector.new(8.064516129032258E-5,6.38722861969271E-36,1.4102957412307699E-36),
-	y=vector.new(6.387228619692709E-36,2.0E-4,-7.723290606087476E-23),
-	z=vector.new(1.410295741230769E-36,-7.723290606087471E-23,7.246376811594203E-5)
+		x=vector.new(8.064516129032258E-5,6.38722861969271E-36,1.4102957412307699E-36),
+		y=vector.new(6.387228619692709E-36,2.0E-4,-7.723290606087476E-23),
+		z=vector.new(1.410295741230769E-36,-7.723290606087471E-23,7.246376811594203E-5)
 	}
-	
 	--unrotated inertia tensors--
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 	
-	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000
+	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000-----------------------
 	
-	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 2
+	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 2-----------------------
 	
-	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or
+	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or-----------------------
 	{
 		POS = {
 			P = 5,
@@ -134,8 +132,6 @@ function TwelveThrusterTemplateVerticalCompact:composeComponentMessage(linear,an
 		STERN={STERN_D,STERN_CCF,STERN_CCB,STERN_CL,STERN_CR}
 	}
 end
-
-
 
 local group_component_map = 
 {
