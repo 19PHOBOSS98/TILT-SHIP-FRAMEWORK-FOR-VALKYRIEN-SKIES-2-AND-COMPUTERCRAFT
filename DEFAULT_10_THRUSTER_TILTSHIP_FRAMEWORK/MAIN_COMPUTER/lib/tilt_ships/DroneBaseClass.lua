@@ -756,6 +756,8 @@ end
 function DroneBaseClass:updateTargetingSystem()
 	while self.run_firmware do
 		self.radars:updateTargetingTables()
+		self.aimTargeting:listenToExternalRadar()
+		self.orbitTargeting:listenToExternalRadar()
 		os.sleep(0.05)
 	end
 	

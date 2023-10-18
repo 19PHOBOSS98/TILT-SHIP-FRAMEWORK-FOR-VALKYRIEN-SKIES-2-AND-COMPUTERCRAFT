@@ -420,7 +420,7 @@ function targeting_utilities.TargetingSystem(
 		
 		TARGET_MODE = {"PLAYER","SHIP","ENTITY"},
 		
-		getTargetSpatials = function(self)
+		listenToExternalRadar = function(self)
 			if (self.use_external_radar) then
 				local _, _, senderChannel, _, message, _ = os.pullEvent("modem_message")
 				if (senderChannel == external_targeting_system_channel) then
@@ -428,7 +428,11 @@ function targeting_utilities.TargetingSystem(
 						self.current_target:updateTargetSpatials(message.trg)
 					end
 				end
-			else
+			end
+		end,
+		
+		getTargetSpatials = function(self)
+			if (not self.use_external_radar) then
 				local spatial_attributes = self.radarSystems:getRadarTarget(self.targeting_mode,self.auto_aim_active)
 				if(spatial_attributes == nil and self.targeting_mode == self.TARGET_MODE[2]) then
 					self.targeting_mode = self.TARGET_MODE[1]

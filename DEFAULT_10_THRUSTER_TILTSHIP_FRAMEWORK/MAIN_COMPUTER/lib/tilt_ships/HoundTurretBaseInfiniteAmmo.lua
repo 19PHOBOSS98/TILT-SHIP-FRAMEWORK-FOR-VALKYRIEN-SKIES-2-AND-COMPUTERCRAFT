@@ -136,15 +136,25 @@ function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomFlightLoopBehavior()
 		--term.setCursorPos(1,1)
 		if(not self.radars.targeted_players_undetected) then
 			if (self.rc_variables.run_mode) then
+				
+				
+				
 				local target_aim = self.aimTargeting:getTargetSpatials()
 				local target_orbit = self.orbitTargeting:getTargetSpatials()
 				
 				local target_aim_position = target_aim.position
+				
+				
+				
 				local target_aim_velocity = target_aim.velocity
 				local target_aim_orientation = target_aim.orientation
 				
 				local target_orbit_position = target_orbit.position
 				local target_orbit_orientation = target_orbit.orientation
+				
+				self:debugProbe({
+									target_orbit_position=target_orbit_position
+								})
 				
 				--Aiming
 				local bullet_convergence_point = vector.new(0,1,0)
@@ -202,7 +212,7 @@ function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomFlightLoopBehavior()
 					
 				end
 
-				
+				--self:debugProbe({})
 				
 			end
 		else
