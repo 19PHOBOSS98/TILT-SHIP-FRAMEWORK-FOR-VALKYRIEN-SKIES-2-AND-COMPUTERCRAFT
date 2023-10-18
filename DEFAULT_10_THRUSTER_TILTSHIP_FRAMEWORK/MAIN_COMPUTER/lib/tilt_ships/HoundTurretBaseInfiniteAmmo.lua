@@ -136,56 +136,54 @@ function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomFlightLoopBehavior()
 		--term.setCursorPos(1,1)
 		if(not self.radars.targeted_players_undetected) then
 			if (self.rc_variables.run_mode) then
-				
-				
-				
 				local target_aim = self.aimTargeting:getTargetSpatials()
 				local target_orbit = self.orbitTargeting:getTargetSpatials()
 				
 				local target_aim_position = target_aim.position
-				
-				
-				
 				local target_aim_velocity = target_aim.velocity
 				local target_aim_orientation = target_aim.orientation
 				
 				local target_orbit_position = target_orbit.position
 				local target_orbit_orientation = target_orbit.orientation
-				
 				self:debugProbe({
-									target_orbit_position=target_orbit_position
-								})
-				
+				aim_ex=self.aimTargeting:isUsingExternalRadar(),
+				orb_ex=self.orbitTargeting:isUsingExternalRadar()
+				})
 				--Aiming
 				local bullet_convergence_point = vector.new(0,1,0)
-				if (self:getAutoAim()) then
+				if (self.aimTargeting:isUsingExternalRadar()) then
 					bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
-					
-					--only fire when aim is close enough and if user says "fire"
-					--self:debugProbe({rotation_error=self.rotation_error:length()})
-					htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free  
-					
-					
-				else	
-				--Manual Aiming
-					
-					local aim_target_mode = self:getTargetMode(true)
-					local orbit_target_mode = self:getTargetMode(false)
-					
-					local aim_z = vector.new()
-					if (aim_target_mode == orbit_target_mode) then
-						aim_z = target_orbit_orientation:localPositiveZ()
-						bullet_convergence_point = target_orbit_position:add(aim_z:mul(htb.bulletRange:get()))
-					else
-						aim_z = target_aim_orientation:localPositiveZ()
-						if (self.rc_variables.player_mounting_ship) then
-							aim_z = target_orbit_orientation:rotateVector3(aim_z)
+					htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free
+				else
+					if (self:getAutoAim()) then
+						bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
+						
+						--only fire when aim is close enough and if user says "fire"
+						--self:debugProbe({rotation_error=self.rotation_error:length()})
+						htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free  
+						
+						
+					else	
+					--Manual Aiming
+						
+						local aim_target_mode = self:getTargetMode(true)
+						local orbit_target_mode = self:getTargetMode(false)
+						
+						local aim_z = vector.new()
+						if (aim_target_mode == orbit_target_mode) then
+							aim_z = target_orbit_orientation:localPositiveZ()
+							bullet_convergence_point = target_orbit_position:add(aim_z:mul(htb.bulletRange:get()))
+						else
+							aim_z = target_aim_orientation:localPositiveZ()
+							if (self.rc_variables.player_mounting_ship) then
+								aim_z = target_orbit_orientation:rotateVector3(aim_z)
+							end
+							bullet_convergence_point = target_aim_position:add(aim_z:mul(htb.bulletRange:get()))
 						end
-						bullet_convergence_point = target_aim_position:add(aim_z:mul(htb.bulletRange:get()))
+						
+						htb.activate_weapons = self.rc_variables.weapons_free
+						
 					end
-					
-					htb.activate_weapons = self.rc_variables.weapons_free
-					
 				end
 				
 				
@@ -194,7 +192,8 @@ function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomFlightLoopBehavior()
 				
 				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector)*self.target_rotation
 				
-							--positioning
+				--positioning
+
 				if (self.rc_variables.dynamic_positioning_mode) then
 					if (self.rc_variables.hunt_mode) then
 						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,25)
@@ -209,8 +208,8 @@ function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomFlightLoopBehavior()
 						--self:debugProbe({target_orbit_position=target_orbit_position})
 						self.target_global_position = formation_position:add(target_orbit_position)
 					end
-					
 				end
+
 
 				--self:debugProbe({})
 				

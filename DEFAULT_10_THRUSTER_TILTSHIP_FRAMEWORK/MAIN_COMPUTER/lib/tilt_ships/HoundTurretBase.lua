@@ -92,7 +92,7 @@ function HoundTurretBase:initializeShipFrameClass(instance_configs)
 	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000
 		
 	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 5
-		--these values are specific for the 10-thruster template--
+
 
 	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or
 	{
