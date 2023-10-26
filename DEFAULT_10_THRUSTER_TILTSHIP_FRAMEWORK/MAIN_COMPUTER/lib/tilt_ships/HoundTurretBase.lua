@@ -264,10 +264,35 @@ function HoundTurretBase:initializeGunPeripherals()
 											end)}
 	end
 end
+
+function HoundTurretBase:CustomThreads()
+	local htb = self
+	local threads = {
+		function()
+			toggle_fire = false
+			while self.ShipFrame.run_firmware do
+				if (htb.activate_weapons) then
+					htb:alternateFire(toggle_fire)
+					toggle_fire = not toggle_fire
+				else
+					htb:reset_guns()
+				end
+				os.sleep(htb.GUNS_COOLDOWN_DELAY)
+			end
+			htb:reset_guns()
+		end,
+	}
+	return threads
+end
+
+function HoundTurretBase:addShipFrameCustomThread()
+	for k,thread in pairs(self:CustomThreads()) do
+		table.insert(self.ShipFrame.threads,thread)
+	end
+end
 --custom--
 
 --overridden functions--
-
 function HoundTurretBase:overrideShipFrameCustomRCProtocols()
 	local htb = self
 	function self.ShipFrame:customRCProtocols(msg)
@@ -321,24 +346,6 @@ end
 function HoundTurretBase:overrideShipFrameOnResetRedstone()
 	local htb = self
 	function self.ShipFrame:onResetRedstone()
-		htb:reset_guns()
-	end
-end
-
-function HoundTurretBase:overrideShipFrameCustomThread()
-	local htb = self
-	function self.ShipFrame:customThread()
-		toggle_fire = false
-		
-		while self.run_firmware do
-			if (htb.activate_weapons) then
-				htb:alternateFire(toggle_fire)
-				toggle_fire = not toggle_fire
-			else
-				htb:reset_guns()
-			end
-			os.sleep(htb.GUNS_COOLDOWN_DELAY)
-		end
 		htb:reset_guns()
 	end
 end
@@ -456,7 +463,7 @@ function HoundTurretBase:init(instance_configs)
 	self:overrideShipFrameCustomRCProtocols()
 	self:overrideShipFrameGetCustomSettings()
 	self:overrideShipFrameOnResetRedstone()
-	self:overrideShipFrameCustomThread()
+	self:addShipFrameCustomThread()
 	self:overrideShipFrameCustomPreFlightLoopBehavior()
 	self:overrideShipFrameCustomFlightLoopBehavior()
 	

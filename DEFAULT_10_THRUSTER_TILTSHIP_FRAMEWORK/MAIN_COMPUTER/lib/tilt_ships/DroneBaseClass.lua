@@ -91,16 +91,6 @@ function DroneBaseClass:onResetRedstone() end
 function DroneBaseClass:communicateWithComponent(component_control_msg)
 	self.modem.transmit(self.com_channels.DRONE_TO_COMPONENT_BROADCAST_CHANNEL, self.com_channels.COMPONENT_TO_DRONE_CHANNEL,component_control_msg)
 end
-
-function DroneBaseClass:customThread()
-	while self.run_firmware do
-		local event, key, isHeld = os.pullEvent("key")
-		if (key == keys.x) then
-			self:resetRedstone()
-			return
-		end
-	end
-end
 --OVERRIDABLE FUNCTIONS--
 
 
@@ -113,6 +103,21 @@ function DroneBaseClass:init(configs)
 	self:initConstants(configs.ship_constants_config)
 	self:initModemChannels(configs.channels_config)
 	self:initRadar(configs.radar_config)
+	
+	self.threads = {
+		function()
+			self:receiveCommand()
+		end,
+		function()
+			self:calculateMovement()
+		end,
+		function()
+			self:updateTargetingSystem()
+		end,
+		function()
+			self:checkInterupt()
+		end,
+	}
 end
 
 function DroneBaseClass:initPeripherals()
@@ -774,25 +779,10 @@ function DroneBaseClass:checkInterupt()
 	
 end
 
+
+
 function DroneBaseClass:run()
-	local execute = {
-		function()
-			self:receiveCommand()
-		end,
-		function()
-			self:calculateMovement()
-		end,
-		function()
-			self:updateTargetingSystem()
-		end,
-		function()
-			self:checkInterupt()
-		end,
-		function()
-			self:customThread()
-		end
-	}
-	parallel.waitForAny(unpack(execute))
+	parallel.waitForAny(unpack(self.threads))
 	
 end
 --THREAD FUNCTIONS--

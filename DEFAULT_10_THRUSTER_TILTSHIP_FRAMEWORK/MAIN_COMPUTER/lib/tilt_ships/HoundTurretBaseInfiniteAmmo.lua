@@ -55,22 +55,26 @@ function HoundTurretBaseInfiniteAmmo:alternateFire(step)
 
 end
 
-function HoundTurretBaseInfiniteAmmo:overrideShipFrameCustomThread()
+function HoundTurretBase:CustomThreads()
 	local htb = self
-	function self.ShipFrame:customThread()
-		sync_step = 0
-		while self.run_firmware do
-			if (htb.activate_weapons) then
-				htb:alternateFire(sync_step)
+	local threads = {
+		function()
+			sync_step = 0
+			while self.ShipFrame.run_firmware do
 				
-				sync_step = math.fmod(sync_step+1,2)
-			else
-				htb:reset_guns()
+				if (htb.activate_weapons) then
+					htb:alternateFire(sync_step)
+					
+					sync_step = math.fmod(sync_step+1,2)
+				else
+					htb:reset_guns()
+				end
+				os.sleep(htb.GUNS_COOLDOWN_DELAY)
 			end
-			os.sleep(htb.GUNS_COOLDOWN_DELAY)
-		end
-		htb:reset_guns()
-	end
+			htb:reset_guns()
+		end,
+	}
+	return threads
 end
 
 function HoundTurretBaseInfiniteAmmo:init(instance_configs)
@@ -83,17 +87,18 @@ function HoundTurretBaseInfiniteAmmo:init(instance_configs)
 	--unrotated inertia tensors--
 	
 	--bare template--
+	--hound_4b_inf_it.nbt--
 	configs.ship_constants_config.LOCAL_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INERTIA_TENSOR or
 	{
-	x=vector.new(141669.52357258383,-3.979039320256561E-13,-300.0),
-	y=vector.new(-3.979039320256561E-13,65280.0,0.0),
-	z=vector.new(-300.0,0.0,135389.52357258383)
+	x=vector.new(24918.76912497852,5.6843418860808015E-14,-299.9999999999999),
+	y=vector.new(5.6843418860808015E-14,13279.999999999998,-2.8421709430404007E-14),
+	z=vector.new(-299.9999999999999,-2.8421709430404007E-14,18638.769124978513)
 	}
 	configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR or
 	{
-	x=vector.new(7.058714302503441E-6,4.3025278431554223E-23,1.5640902153080952E-8),
-	y=vector.new(4.3025278431554176E-23,1.53186274509804E-5,9.53366493127981E-26),
-	z=vector.new(1.5640902153080965E-8,9.533664931279822E-26,7.386130520907934E-6)
+	x=vector.new(4.013817086883722E-5,-1.704238859222406E-22,6.460432649768677E-7),
+	y=vector.new(-1.704238859222405E-22,7.530120481927712E-5,1.1208153195891727E-22),
+	z=vector.new(6.460432649768682E-7,1.120815319589173E-22,5.3662009882352995E-5)
 	}
 	--bare template--
 	

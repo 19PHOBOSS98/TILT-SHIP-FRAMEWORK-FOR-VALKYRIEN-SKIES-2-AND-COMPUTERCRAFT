@@ -53,22 +53,26 @@ function HoundTurretDualRotary:alternateFire(step)
 	self:activateGun({"top",2,4},seq_3)
 end
 
-function HoundTurretDualRotary:overrideShipFrameCustomThread()
+function HoundTurretBase:CustomThreads()
 	local htb = self
-	function self.ShipFrame:customThread()
-		sync_step = 0
-		while self.run_firmware do
-			if (htb.activate_weapons) then
-				htb:alternateFire(sync_step)
+	local threads = {
+		function()
+			sync_step = 0
+			while self.ShipFrame.run_firmware do
 				
-				sync_step = math.fmod(sync_step+1,3)
-			else
-				htb:reset_guns()
+				if (htb.activate_weapons) then
+					htb:alternateFire(sync_step)
+					
+					sync_step = math.fmod(sync_step+1,3)
+				else
+					htb:reset_guns()
+				end
+				os.sleep(htb.GUNS_COOLDOWN_DELAY)
 			end
-			os.sleep(htb.GUNS_COOLDOWN_DELAY)
-		end
-		htb:reset_guns()
-	end
+			htb:reset_guns()
+		end,
+	}
+	return threads
 end
 
 function HoundTurretDualRotary:init(instance_configs)
