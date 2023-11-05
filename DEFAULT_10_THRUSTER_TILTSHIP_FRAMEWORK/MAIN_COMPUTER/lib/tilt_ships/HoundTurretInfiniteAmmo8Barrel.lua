@@ -5,8 +5,7 @@ local player_spatial_utilities = require "lib.player_spatial_utilities"
 local flight_utilities = require "lib.flight_utilities"
 local list_manager = require "lib.list_manager"
 
-local HoundTurretBase = require "lib.tilt_ships.HoundTurretBase"
-local TenThrusterTemplateVerticalCompact = require "lib.tilt_ships.TenThrusterTemplateVerticalCompact"
+local HoundTurretBaseInfiniteAmmo = require "lib.tilt_ships.HoundTurretBaseInfiniteAmmo"
 
 local sqrt = math.sqrt
 local abs = math.abs
@@ -35,26 +34,26 @@ local IntegerScroller = utilities.IntegerScroller
 local IndexedListScroller = list_manager.IndexedListScroller
 
 
-local HoundTurretBaseInfiniteAmmo = HoundTurretBase:subclass()
+local HoundTurretInfiniteAmmo8Barrel = HoundTurretBaseInfiniteAmmo:subclass()
 
 
 --overridden functions--
-function HoundTurretBaseInfiniteAmmo:setShipFrameClass(configs) --override this to set ShipFrame Template
-	self.ShipFrame = TenThrusterTemplateVerticalCompact(configs)
-end
-
-function HoundTurretBaseInfiniteAmmo:alternateFire(step)
+function HoundTurretInfiniteAmmo8Barrel:alternateFire(step)
 	local seq_1 = step==0
 	local seq_2 = step==1
-	--{hub_index, redstoneIntegrator_index, side_index}
-	self:activateGun({"front",1,3},seq_1)
-	self:activateGun({"front",2,3},seq_1)
+
+	self:activateGun({"front",1,4},seq_1)
+	self:activateGun({"front",2,4},seq_1)
+	self:activateGun({"front",3,4},seq_1)
+	self:activateGun({"front",4,4},seq_1)
 	
-	self:activateGun({"front",1,4},seq_2)
-	self:activateGun({"front",2,4},seq_2)
+	self:activateGun({"front",1,2},seq_2)
+	self:activateGun({"front",2,2},seq_2)
+	self:activateGun({"front",3,2},seq_2)
+	self:activateGun({"front",4,2},seq_2)
 end
 
-function HoundTurretBaseInfiniteAmmo:init(instance_configs)
+function HoundTurretInfiniteAmmo8Barrel:init(instance_configs)
 	local configs = instance_configs
 	
 	configs.ship_constants_config = configs.ship_constants_config or {}
@@ -62,46 +61,27 @@ function HoundTurretBaseInfiniteAmmo:init(instance_configs)
 	
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 	--unrotated inertia tensors--
-	
+	--it_hound_8b_inf.nbt--
 	--bare template--
-	--it_hound_4b_inf.nbt--
 	configs.ship_constants_config.LOCAL_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INERTIA_TENSOR or
 	{
-	x=vector.new(28030.733960085767,2.2737367544323206E-13,-299.9999999999999),
-	y=vector.new(2.2737367544323206E-13,14839.999999999998,2.8421709430404007E-14),
-	z=vector.new(-299.9999999999999,2.8421709430404007E-14,21750.733960085767)
+	x=vector.new(29189.344183819994,0.0,200.0),
+	y=vector.new(0.0,22660.0,-2.8421709430404007E-14),
+	z=vector.new(200.0,-2.8421709430404007E-14,23729.344183819994)
 	}
 	configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR or
 	{
-	x=vector.new(3.568039422202221E-5,-5.476259743494812E-22,4.92126761618689E-7),
-	y=vector.new(-5.47625974349481E-22,6.738544474393532E-5,-9.560584605887562E-23),
-	z=vector.new(4.921267616186892E-7,-9.560584605887565E-23,4.598224776524008E-5)
+	x=vector.new(3.426105591006253E-5,-3.6218903081060128E-25,-2.887652995772521E-7),
+	y=vector.new(-3.621890308106016E-25,4.41306266548985E-5,5.286030139967415E-23),
+	z=vector.new(-2.887652995772522E-7,5.286030139967413E-23,4.2144348588521514E-5)
 	}
 	--bare template--
-	
-	--Netherite Caged, paste in firmwareScript.lua--
-	--hound_4b_caged.nbt--
-	--[[
-	LOCAL_INERTIA_TENSOR = 
-	{
-	x=vector.new(95477.12678267715,-2.2737367544323206E-13,-300.0),
-	y=vector.new(-2.2737367544323206E-13,52200.0,-1.1368683772161603E-13),
-	z=vector.new(-300.0,-1.1368683772161603E-13,89197.12678267717)
-	},
-	LOCAL_INV_INERTIA_TENSOR = 
-	{
-	x=vector.new(1.0473823436011874E-5,4.56987849928189E-23,3.522699826934104E-8),
-	y=vector.new(4.569878499281891E-23,1.9157088122605363E-5,2.45705044900259E-23),
-	z=vector.new(3.5226998269341027E-8,2.4570504490025896E-23,1.1211241933116742E-5)
-	},
-	]]--
-	--Netherite Caged, paste in firmwareScript.lua--
 	
 	--unrotated inertia tensors--
 	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
 
-	HoundTurretBaseInfiniteAmmo.superClass.init(self,configs)
+	HoundTurretInfiniteAmmo8Barrel.superClass.init(self,configs)
 end
 --overridden functions--
 
-return HoundTurretBaseInfiniteAmmo
+return HoundTurretInfiniteAmmo8Barrel

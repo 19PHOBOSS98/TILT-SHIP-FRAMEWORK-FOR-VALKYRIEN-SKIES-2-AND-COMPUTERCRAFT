@@ -50,49 +50,9 @@ function HoundTurretBase:initializeShipFrameClass(instance_configs)
 	
 	configs.ship_constants_config.DRONE_TYPE = "TURRET"
 	
-	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
-	--unrotated inertia tensors--
-	
-	--bare template--
-	configs.ship_constants_config.LOCAL_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INERTIA_TENSOR or
-	{
-	x=vector.new(74506.5747613998,2.2737367544323206E-13,0.0),
-	y=vector.new(2.2737367544323206E-13,44160.0,0.0),
-	z=vector.new(0.0,0.0,69706.57476139978)
-	}
-	configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR = configs.ship_constants_config.LOCAL_INV_INERTIA_TENSOR or
-	{
-	x=vector.new(1.3421634308145348E-5,-6.910612144696537E-23,-0.0),
-	y=vector.new(-6.910612144696532E-23,2.2644927536231884E-5,-0.0),
-	z=vector.new(-0.0,-0.0,1.4345849059761188E-5)
-	}
-	--bare template--
-	
-	--steampunk skin, paste in firmwareScript.lua--
-	--[[
-	LOCAL_INERTIA_TENSOR = 
-	{
-	x=vector.new(146782.30998366486,-6.821210263296962E-13,0.0),
-	y=vector.new(-6.821210263296962E-13,100360.0,0.0),
-	z=vector.new(0.0,0.0,142982.30998366483)
-	}
-	
-	LOCAL_INV_INERTIA_TENSOR = 
-	{
-	x=vector.new(6.812810073034606E-6,4.6304912307768623E-23,-0.0),
-	y=vector.new(4.630491230776861E-23,9.964129135113591E-6,-0.0),
-	z=vector.new(-0.0,-0.0,6.993872179811937E-6)
-	}
-	]]--
-	--steampunk skin, paste in firmwareScript.lua--
-	
-	--unrotated inertia tensors--
-	--REMOVE WHEN VS2-COMPUTERS UPDATE RELEASES--
-	
 	configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED = configs.ship_constants_config.MOD_CONFIGURED_THRUSTER_SPEED or 10000
 		
 	configs.ship_constants_config.THRUSTER_TIER = configs.ship_constants_config.THRUSTER_TIER or 5
-
 
 	configs.ship_constants_config.PID_SETTINGS = configs.ship_constants_config.PID_SETTINGS or
 	{
@@ -167,7 +127,7 @@ end
 
 function HoundTurretBase:initCustom(custom_config)
 	self:initializeGunPeripherals()
-	
+	self.ALTERNATING_FIRE_SEQUENCE_COUNT = 2
 	self.GUNS_COOLDOWN_DELAY = 1 --in seconds -- 5 shots per burst
 	self.activate_weapons = false
 	
@@ -195,11 +155,15 @@ function HoundTurretBase:setHuntMode(mode)
 end
 
 function HoundTurretBase:alternateFire(toggle)
+	local seq_1 = step==0
+	local seq_2 = step==1
 	--{hub_index, redstoneIntegrator_index, side_index}
-	self:activateGun({"top",1,1},toggle)
-	self:activateGun({"top",1,2},not toggle)
-	self:activateGun({"top",1,3},toggle)
-	self:activateGun({"top",1,4},not toggle)
+	self:activateGun({"top",1,1},seq_1)
+	self:activateGun({"top",1,3},seq_1)
+	
+	self:activateGun({"top",1,2},seq_2)
+	self:activateGun({"top",1,4},seq_2)
+	
 end
 
 function HoundTurretBase:initializeGunPeripherals()
@@ -268,12 +232,14 @@ end
 function HoundTurretBase:CustomThreads()
 	local htb = self
 	local threads = {
-		function()
-			toggle_fire = false
+		function()--synchronize guns
+			sync_step = 0
 			while self.ShipFrame.run_firmware do
+				
 				if (htb.activate_weapons) then
-					htb:alternateFire(toggle_fire)
-					toggle_fire = not toggle_fire
+					htb:alternateFire(sync_step)
+					
+					sync_step = math.fmod(sync_step+1,htb.ALTERNATING_FIRE_SEQUENCE_COUNT)
 				else
 					htb:reset_guns()
 				end
@@ -373,7 +339,6 @@ function HoundTurretBase:overrideShipFrameCustomFlightLoopBehavior()
 		
 		--term.clear()
 		--term.setCursorPos(1,1)
-		
 		if(not self.radars.targeted_players_undetected) then
 			if (self.rc_variables.run_mode) then
 				local target_aim = self.aimTargeting:getTargetSpatials()
@@ -385,55 +350,51 @@ function HoundTurretBase:overrideShipFrameCustomFlightLoopBehavior()
 				
 				local target_orbit_position = target_orbit.position
 				local target_orbit_orientation = target_orbit.orientation
-				
+
 				--Aiming
 				local bullet_convergence_point = vector.new(0,1,0)
-				if (self:getAutoAim()) then
+				if (self.aimTargeting:isUsingExternalRadar()) then
 					bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
-					
-					--only fire when aim is close enough and if user says "fire"
-					
-					htb.activate_weapons = (self.rotation_error:length() < 2) and self.rc_variables.weapons_free  
-					
-					
-				else	
-				--Manual Aiming
-					
-					local aim_target_mode = self:getTargetMode(true)
-					local orbit_target_mode = self:getTargetMode(false)
-					
-					local aim_z = vector.new()
-					if (aim_target_mode == orbit_target_mode) then
-						aim_z = target_orbit_orientation:localPositiveZ()
-						bullet_convergence_point = target_orbit_position:add(aim_z:mul(htb.bulletRange:get()))
-					else
-						aim_z = target_aim_orientation:localPositiveZ()
-						if (self.rc_variables.player_mounting_ship) then
-							aim_z = target_orbit_orientation:rotateVector3(aim_z)
+					htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free
+				else
+					if (self:getAutoAim()) then
+						bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
+						--only fire when aim is close enough and if user says "fire"
+						htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free  
+					else	
+					--Manual Aiming
+						
+						local aim_target_mode = self:getTargetMode(true)
+						local orbit_target_mode = self:getTargetMode(false)
+						
+						local aim_z = vector.new()
+						if (aim_target_mode == orbit_target_mode) then
+							aim_z = target_orbit_orientation:localPositiveZ()
+							bullet_convergence_point = target_orbit_position:add(aim_z:mul(htb.bulletRange:get()))
+						else
+							aim_z = target_aim_orientation:localPositiveZ()
+							if (self.rc_variables.player_mounting_ship) then
+								aim_z = target_orbit_orientation:rotateVector3(aim_z)
+							end
+							bullet_convergence_point = target_aim_position:add(aim_z:mul(htb.bulletRange:get()))
 						end
-						bullet_convergence_point = target_aim_position:add(aim_z:mul(htb.bulletRange:get()))
+						
+						htb.activate_weapons = self.rc_variables.weapons_free
+						
 					end
-					
-					htb.activate_weapons = self.rc_variables.weapons_free
-					
 				end
-				
-				
-				
+
 				local aiming_vector = bullet_convergence_point:sub(self.ship_global_position):normalize()
+
+				self.target_rotation = quaternion.fromToRotation(self.target_rotation:localPositiveY(),aiming_vector)*self.target_rotation
 				
-				
-				local gun_aim_vector = quaternion.fromRotation(self.target_rotation:localPositiveZ(), -45):rotateVector3(self.target_rotation:localPositiveY())
-				
-				self.target_rotation = quaternion.fromToRotation(gun_aim_vector,aiming_vector)*self.target_rotation
-				
-							--positioning
+				--positioning
 				if (self.rc_variables.dynamic_positioning_mode) then
 					if (self.rc_variables.hunt_mode) then
-						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,15)
+						self.target_global_position = adjustOrbitRadiusPosition(self.target_global_position,target_aim_position,25)
 						--[[
 						--position the drone behind target player's line of sight--
-						local formation_position = aim_target.orientation:rotateVector3(vector.new(0,0,15))
+						local formation_position = aim_target.orientation:rotateVector3(vector.new(0,0,25))
 						target_global_position = formation_position:add(aim_target.position)
 						]]--
 						
@@ -442,20 +403,13 @@ function HoundTurretBase:overrideShipFrameCustomFlightLoopBehavior()
 						--self:debugProbe({target_orbit_position=target_orbit_position})
 						self.target_global_position = formation_position:add(target_orbit_position)
 					end
-					
 				end
-
-				
-				
 			end
 		else
-			self:reset_guns()
+			htb:reset_guns()
 		end
-		
 	end
-
 end
-
 
 function HoundTurretBase:init(instance_configs)
 	self:initializeShipFrameClass(instance_configs)
