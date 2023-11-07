@@ -96,8 +96,8 @@ function RemoteControlDrone:getSettings()
 		use_external_orbit = self:isUsingExternalRadar(false),
 		aim_target_mode = self:getTargetMode(true),
 		orbit_target_mode = self:getTargetMode(false),
-		master_player = self.radars:getDesignatedMaster(true),
-		master_ship = self.radars:getDesignatedMaster(false),
+		master_player = self.sensors:getDesignatedMaster(true),
+		master_ship = self.sensors:getDesignatedMaster(false),
 	}
 	
 	for key,value in pairs(self:getCustomSettings()) do
@@ -134,7 +134,7 @@ function RemoteControlDrone:setRunMode(mode)
 end
 
 function RemoteControlDrone:getRunMode()
-	if(self.radars.targeted_players_undetected) then
+	if(self:targetedPlayersAreUndetected()) then
 		return false
 	end
 	return self.rc_variables.run_mode

@@ -6,6 +6,8 @@ local player_spatial_utilities = require "lib.player_spatial_utilities"
 local flight_utilities = require "lib.flight_utilities"
 
 
+local Sensors = require "lib.sensory.Sensors"
+
 local Object = require "lib.object.Object"
 
 local sqrt = math.sqrt
@@ -21,7 +23,6 @@ local clamp = utilities.clamp
 local sign = utilities.sign
 
 local quadraticSolver = utilities.quadraticSolver
-local getTargetAimPos = targeting_utilities.getTargetAimPos
 local getQuaternionRotationError = flight_utilities.getQuaternionRotationError
 local getLocalPositionError = flight_utilities.getLocalPositionError
 local adjustOrbitRadiusPosition = flight_utilities.adjustOrbitRadiusPosition
@@ -121,26 +122,24 @@ function DroneBaseClass:init(configs)
 end
 
 function DroneBaseClass:initPeripherals()
-	self.shipreader = peripheral.find("ship_reader")
-	self.radar = peripheral.find("radar")
-	self.player_radar = peripheral.find("playerDetector")
+	--self.sensors.shipReader = ShipReader()
+	--self.sensors.shipRadar = ShipRadar()
+	--self.sensors.playerRadar = PlayerRadar()
+	self.sensors = Sensors()
 	self.modem = peripheral.find("modem", function(name, object) return object.isWireless() end)
 end
 
 function DroneBaseClass:initVariables()
-	local shipreader = self.shipreader
-
-	
 	self.ship_global_velocity = vector.new(0,0,0)
 	self.run_firmware = true
 	
-	self.ship_rotation = shipreader.getRotation(true)
+	self.ship_rotation = self.sensors.shipReader:getRotation(true)
 	self.ship_rotation = quaternion.new(self.ship_rotation.w,self.ship_rotation.x,self.ship_rotation.y,self.ship_rotation.z)
 	self.ship_rotation = self:getOffsetDefaultShipOrientation(self.ship_rotation)
 	self.target_rotation = self.ship_rotation
 	
 	
-	self.ship_global_position = shipreader.getWorldspacePosition()
+	self.ship_global_position = self.sensors.shipReader:getWorldspacePosition()
 	self.ship_global_position = self.ship_global_position
 	self.ship_global_position = vector.new(self.ship_global_position.x,self.ship_global_position.y,self.ship_global_position.z)
 	self.target_global_position = self.ship_global_position
@@ -156,12 +155,12 @@ function DroneBaseClass:initConstants(ship_constants_config)
 		--DO NOT OVERRIDE THESE UNLESS YOU KNOW WHAT YOU ARE DOING--
 		
 		WORLD_UP_VECTOR = vector.new(0,1,0),
-		MY_SHIP_ID = self.shipreader.getShipID(),
+		MY_SHIP_ID = self.sensors.shipReader:getShipID(),
 		
 		-- USE WHEN VS2-COMPUTERS UPDATE RELEASES --
 		--[[
-		LOCAL_INERTIA_TENSOR = self.shipreader.getInertiaTensor(),
-		LOCAL_INV_INERTIA_TENSOR = self.shipreader.getInverseInertiaTensor(),
+		LOCAL_INERTIA_TENSOR = self.sensors.shipReader.getInertiaTensor(),
+		LOCAL_INV_INERTIA_TENSOR = self.sensors.shipReader.getInverseInertiaTensor(),
 		]]--
 		-- USE WHEN VS2-COMPUTERS UPDATE RELEASES --
 		
@@ -282,10 +281,18 @@ function DroneBaseClass:initModemChannels(channels_config)
 end
 
 function DroneBaseClass:initRadar(radar_config)
+	
+	radar_config = radar_config or {}
+	radar_config.EXTERNAL_AIM_TARGETING_CHANNEL = self.com_channels.EXTERNAL_AIM_TARGETING_CHANNEL
+	radar_config.EXTERNAL_ORBIT_TARGETING_CHANNEL = self.com_channels.EXTERNAL_ORBIT_TARGETING_CHANNEL
+	
+	self.sensors:initRadar(radar_config)
+	
+	--[[
 	local radar_arguments = {
-	ship_radar_component=self.radar,
-	ship_reader_component=self.shipreader,
-	player_radar_component=self.player_radar,
+	ship_radar_component=self.sensors.shipRadar,
+	ship_reader_component=self.sensors.shipReader,
+	player_radar_component=self.sensors.playerRadar,
 	
 	--if target_mode is "2" and hunt_mode is false, drone orbits this ship if detected
 	designated_ship_id=tostring(radar_config.designated_ship_id),
@@ -298,8 +305,6 @@ function DroneBaseClass:initRadar(radar_config)
 		[tostring(self.ship_constants.MY_SHIP_ID)]=true,
 		[tostring(radar_config.designated_ship_id)]=true,
 	},
-	
-	
 	
 	--players excluded from being aimed at
 	player_name_whitelist={
@@ -319,22 +324,23 @@ function DroneBaseClass:initRadar(radar_config)
 		radar_arguments.player_name_whitelist[name] = validation
 	end
 	
-	self.radars = RadarSystems(radar_arguments)
-	self.aimTargeting = TargetingSystem(self.com_channels.EXTERNAL_AIM_TARGETING_CHANNEL,"PLAYER",false,false,self.radars)
-	self.orbitTargeting = TargetingSystem(self.com_channels.EXTERNAL_ORBIT_TARGETING_CHANNEL,"PLAYER",false,false,self.radars)
-	local radars = self.radars
+	self.sensors.radars = RadarSystems(radar_arguments)
+	self.sensors.aimTargeting = TargetingSystem(self.com_channels.EXTERNAL_AIM_TARGETING_CHANNEL,"PLAYER",false,false,self.sensors.radars)
+	self.sensors.orbitTargeting = TargetingSystem(self.com_channels.EXTERNAL_ORBIT_TARGETING_CHANNEL,"PLAYER",false,false,self.sensors.radars)
+	local radars = self.sensors.radars
+	--]]
+	
 	function DroneBaseClass:scrollUpShipTargets()
-		radars.onboardShipRadar.listScroller:scrollUp()
+		self.sensors:scrollUpShipTargets()
 	end
 	function DroneBaseClass:scrollDownShipTargets()
-		radars.onboardShipRadar.listScroller:scrollDown()
+		self.sensors:scrollDownShipTargets()
 	end
-
 	function DroneBaseClass:scrollUpPlayerTargets()
-		radars.onboardPlayerRadar.listScroller:scrollUp()
+		self.sensors:scrollUpPlayerTargets()
 	end
 	function DroneBaseClass:scrollDownPlayerTargets()
-		radars.onboardPlayerRadar.listScroller:scrollDown()
+		self.sensors:scrollDownPlayerTargets()
 	end
 end
 --INITIALIZATION FUNCTIONS--
@@ -343,63 +349,46 @@ end
 
 --RADAR SYSTEM FUNCTIONS--
 function DroneBaseClass:useExternalRadar(is_aim,mode)
-	--(turn these on and transmit target info yourselves from a ground radar station, or something... idk)
-	if (is_aim) then
-		self.aimTargeting:useExternalRadar(mode)--activate to use external radar system instead to get aim_target 
-	else
-		self.orbitTargeting:useExternalRadar(mode)--activate to use external radar system instead to get orbit_target
-	end
+	self.sensors:useExternalRadar(is_aim,mode)
 end
 
 function DroneBaseClass:isUsingExternalRadar(is_aim)
-	if (is_aim) then
-		return self.aimTargeting:isUsingExternalRadar()
-	else
-		return self.orbitTargeting:isUsingExternalRadar()
-	end
+	return self.sensors:useExternalRadar(is_aim,mode)
 end
 
 function DroneBaseClass:setTargetMode(is_aim,target_mode)
-	if (is_aim) then
-		self.aimTargeting:setTargetMode(target_mode)--aim at either players or ships (etity radar has not yet been implemented)
-	else
-		self.orbitTargeting:setTargetMode(target_mode)--orbit either players or ships (etity radar has not yet been implemented)
-	end
+	self.sensors:setTargetMode(is_aim,target_mode)
 end
 
 function DroneBaseClass:getTargetMode(is_aim)
-	if (is_aim) then
-		return self.aimTargeting:getTargetMode()
-	else
-		return self.orbitTargeting:getTargetMode()
-	end
+	return self.sensors:getTargetMode(is_aim)
 end
 
 function DroneBaseClass:setDesignatedMaster(is_player,designation)
-	if (not is_player and designation == tostring(self.ship_constants.MY_SHIP_ID)) then
-		self:setTargetMode(false,"PLAYER")
-	else
-		self.radars:setDesignatedMaster(is_player,designation)
-	end
+	self.sensors:setDesignatedMaster(is_player,designation)
 end
 
 function DroneBaseClass:addToWhitelist(is_player,designation)
-	self.radars:addToWhitelist(is_player,designation)
+	self.sensors:addToWhitelist(is_player,designation)
 end
 
 function DroneBaseClass:removeFromWhitelist(is_player,designation)
 	-- set new designated player/ship before removing it from whitelist
-	self.radars:removeFromShipWhitelist(is_player,designation)
+	self.sensors:removeFromWhitelist(is_player,designation)
 end
 
 function DroneBaseClass:getAutoAim()
-	return self.aimTargeting:getAutoAimActive()
+	return self.sensors:getAutoAim()
 end
 
 function DroneBaseClass:setAutoAim(mode)
 	--deactivate for manual aiming (by designated player/ship),
 	--deactivate self.hunt_mode first before deactivating auto_aim
-	self.aimTargeting:setAutoAimActive(self.hunt_mode,mode)
+	self.sensors:setAutoAim(self.hunt_mode,mode)
+end
+
+function DroneBaseClass:targetedPlayersAreUndetected()
+	return self.sensors:targetedPlayersAreUndetected()
 end
 --RADAR SYSTEM FUNCTIONS--
 
@@ -531,7 +520,7 @@ end
 function DroneBaseClass:calculateMovement()
 	
 	local min_time_step = 0.05 --how fast the computer should continuously loop (the max is 0.05 for ComputerCraft)
-	local ship_mass = self.shipreader.getMass()
+	local ship_mass = self.sensors.shipReader:getMass()
 	local max_redstone = 15
 	
 	
@@ -629,8 +618,8 @@ function DroneBaseClass:calculateMovement()
 
 	-- USE WHEN VS2-COMPUTERS UPDATE RELEASES --
 	--[[
-	self.ship_constants.LOCAL_INERTIA_TENSOR = quaternion.rotateTensor(self.shipreader.getInertiaTensor(),self.ship_constants.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION)
-	self.ship_constants.LOCAL_INV_INERTIA_TENSOR = quaternion.rotateTensor(self.shipreader.getInverseInertiaTensor(),self.ship_constants.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION)
+	self.ship_constants.LOCAL_INERTIA_TENSOR = quaternion.rotateTensor(self.sensors.shipReader.getInertiaTensor(),self.ship_constants.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION)
+	self.ship_constants.LOCAL_INV_INERTIA_TENSOR = quaternion.rotateTensor(self.sensors.shipReader.getInverseInertiaTensor(),self.ship_constants.DEFAULT_NEW_LOCAL_SHIP_ORIENTATION)
 	]]--
 	-- USE WHEN VS2-COMPUTERS UPDATE RELEASES --
 	
@@ -711,11 +700,11 @@ function DroneBaseClass:calculateMovement()
 		--self:debugProbe({rcvv=self.rc_variables})
 		self:customFlightLoopBehavior(customFlightVariables)
 
-		self.ship_rotation = self.shipreader.getRotation(true)
+		self.ship_rotation = self.sensors.shipReader:getRotation(true)
 		self.ship_rotation = quaternion.new(self.ship_rotation.w,self.ship_rotation.x,self.ship_rotation.y,self.ship_rotation.z)
 		self.ship_rotation = self:getOffsetDefaultShipOrientation(self.ship_rotation)
 
-		self.ship_global_position = self.shipreader.getWorldspacePosition()
+		self.ship_global_position = self.sensors.shipReader:getWorldspacePosition()
 		self.ship_global_position = vector.new(self.ship_global_position.x,self.ship_global_position.y,self.ship_global_position.z)
 		
 		--FOR ANGULAR MOVEMENT--
@@ -760,12 +749,9 @@ end
 
 function DroneBaseClass:updateTargetingSystem()
 	while self.run_firmware do
-		self.radars:updateTargetingTables()
-		self.aimTargeting:listenToExternalRadar()
-		self.orbitTargeting:listenToExternalRadar()
+		self.sensors:updateTargetingSystem()
 		os.sleep(0.05)
 	end
-	
 end
 
 function DroneBaseClass:checkInterupt()

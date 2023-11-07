@@ -339,10 +339,10 @@ function HoundTurretBase:overrideShipFrameCustomFlightLoopBehavior()
 		
 		--term.clear()
 		--term.setCursorPos(1,1)
-		if(not self.radars.targeted_players_undetected) then
+		if(not self.sensors.radars.targeted_players_undetected) then
 			if (self.rc_variables.run_mode) then
-				local target_aim = self.aimTargeting:getTargetSpatials()
-				local target_orbit = self.orbitTargeting:getTargetSpatials()
+				local target_aim = self.sensors.aimTargeting:getTargetSpatials()
+				local target_orbit = self.sensors.orbitTargeting:getTargetSpatials()
 				
 				local target_aim_position = target_aim.position
 				local target_aim_velocity = target_aim.velocity
@@ -353,7 +353,7 @@ function HoundTurretBase:overrideShipFrameCustomFlightLoopBehavior()
 
 				--Aiming
 				local bullet_convergence_point = vector.new(0,1,0)
-				if (self.aimTargeting:isUsingExternalRadar()) then
+				if (self.sensors.aimTargeting:isUsingExternalRadar()) then
 					bullet_convergence_point = getTargetAimPos(target_aim_position,target_aim_velocity,self.ship_global_position,self.ship_global_velocity,htb.bullet_velocity_squared)
 					htb.activate_weapons = (self.rotation_error:length() < 10) and self.rc_variables.weapons_free
 				else

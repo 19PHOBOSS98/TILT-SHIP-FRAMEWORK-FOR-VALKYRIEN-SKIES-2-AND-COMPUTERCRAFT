@@ -55,16 +55,16 @@ box_size)
 		end,
 		
 		getTargetSpatials = function(self,name)
-			return self.player_radar_component.getPlayerPos(name)
+			return self.player_radar_component:getPlayerPos(name)
 		end,
 		
 		getTargetList = function(self)
-			if (self.player_radar_component) then
-				local center = self.ship_reader_component.getWorldspacePosition()
+			if (self.player_radar_component.peripheral) then
+				local center = self.ship_reader_component:getWorldspacePosition()
 				center = vector.new(center.x,center.y,center.z)
 				local pos1 = center:add(self.box_radar_area)
 				local pos2 = center:sub(self.box_radar_area)
-				return self.player_radar_component.getPlayersInCoords(pos1,pos2)
+				return self.player_radar_component:getPlayersInCoords(pos1,pos2)
 				--return {"PHO","PRING","BING","GUS"}
 			end
 			return nil
@@ -167,7 +167,7 @@ function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_sh
 		end,
 		
 		getTargetList = function(self)
-			return self.ship_radar_component.scan(self.range)[1]
+			return self.ship_radar_component:scan(self.range)
 		end,
 		
 		targets = {},
