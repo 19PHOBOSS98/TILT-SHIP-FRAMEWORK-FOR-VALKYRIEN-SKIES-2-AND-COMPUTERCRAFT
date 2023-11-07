@@ -33,252 +33,18 @@ function targeting_utilities.getTargetAimPos(target_g_pos,target_g_vel,gun_g_pos
 end
 
 
-
-function targeting_utilities.OnBoardPlayerRadar(
-ship_reader_component,
-player_radar_component,
-designated_player_name,
-player_name_whitelist,
-box_size)
-	return{
-		ship_reader_component=ship_reader_component,
-		player_radar_component=player_radar_component,
-		box_radar_area = vector.new(1,1,1):mul(box_size/2),
-		designated_player_name = designated_player_name,
-		player_name_whitelist = player_name_whitelist,
-		listScroller = IndexedListScroller(),
-		
-		
-		
-		setBoxRadarAreaSize = function(self,size)
-			self.box_radar_area = vector.new(1,1,1):mul(size/2)
-		end,
-		
-		getTargetSpatials = function(self,name)
-			return self.player_radar_component:getPlayerPos(name)
-		end,
-		
-		getTargetList = function(self)
-			if (self.player_radar_component.peripheral) then
-				local center = self.ship_reader_component:getWorldspacePosition()
-				center = vector.new(center.x,center.y,center.z)
-				local pos1 = center:add(self.box_radar_area)
-				local pos2 = center:sub(self.box_radar_area)
-				return self.player_radar_component:getPlayersInCoords(pos1,pos2)
-				--return {"PHO","PRING","BING","GUS"}
-			end
-			return nil
-		end,
-		
-		targets = {},
-		
-		current_target_player = {},
-		
-		updateTargets = function(self)
-			self.targets = self:getTargetList(self)
-			current_target_player = self:getTargetSpatials(self.designated_player_name)
-		end,
-		
-		getTarget=function(self,is_auto_aim)
-			if (peripheral.find("playerDetector")) then
-				if (is_auto_aim) then
-					local scanned_player_names = self.targets
-					if (scanned_player_names) then
-						local list_size = #scanned_player_names
-						
-						self.listScroller:updateListSize(list_size)
-						
-						if (list_size>1) then
-							local name = self.listScroller:getCurrentItem(scanned_player_names)
-							if (name) then
-								local prev_name = name
-								while (self.player_name_whitelist[name]) do
-									self.listScroller:skip()
-									name = self.listScroller:getCurrentItem(scanned_player_names)
-									if (prev_name == name) then
-										break
-									end
-								end
-								return self.getTargetSpatials(self,name)
-							end
-						end
-					end
-				else
-					return current_target_player
-				end
-
-			end
-			return nil
-		end,
-		addToWhitelist = function(self,name)
-			if (name) then
-				if (name ~= "") then
-					if (self.designated_player_name ~= name) then
-						if (not self.player_name_whitelist[name]) then
-							self.player_name_whitelist[name] = true
-						end
-					end
-				end
-			end
-		end,
-		removeFromWhitelist = function(self,name)
-			if (self.designated_player_name ~= name) then
-				if (self.player_name_whitelist[name]) then
-					self.player_name_whitelist[name] = false
-				end
-			end
-		end,
-		setWhitelist = function(self,list)
-			self.player_name_whitelist = list
-		end,
-		setDesignation = function(self,name)
-			if (name) then
-				if (name ~= "") then
-					self.prev_designated_player_name = self.designated_player_name
-					self.addToWhitelist(self,name)
-					self.designated_player_name = name
-				end
-			end
-		end,
-		getDesignation = function(self)
-			return self.designated_player_name
-		end
-	}
-end
-
-
-
-
-function targeting_utilities.OnBoardShipRadar(ship_radar_component,designated_ship_id,ship_id_whitelist,range)
-	return{
-		ship_radar_component = ship_radar_component,
-		range = range,
-		designated_ship_id = designated_ship_id,
-		ship_id_whitelist = ship_id_whitelist,
-		prev_designated_ship_id = designated_ship_id,
-		listScroller = IndexedListScroller(),
-		
-		getTargetSpatials = function(self,target_list,target_ship_id)
-			for i,trg in ipairs(target_list) do
-				if (trg.id == target_ship_id) then
-					return trg
-				end
-			end
-		end,
-		
-		getTargetList = function(self)
-			return self.ship_radar_component:scan(self.range)
-		end,
-		
-		targets = {},
-		
-		updateTargetList = function(self)
-			self.targets = self:getTargetList(self)
-		end,
-		
-		getTarget=function(self,is_auto_aim)
-			if (peripheral.find("radar")) then
-				local scanned_ship_targets = self.targets
-				if (scanned_ship_targets) then
-					local list_size = #scanned_ship_targets
-					self.listScroller:updateListSize(list_size)
-					if (list_size>1) then
-						if (is_auto_aim) then
-							local ship = self.listScroller:getCurrentItem(scanned_ship_targets)
-							if (ship) then
-								local ship_id = tostring(ship.id)
-								local prev_ship_id = ship_id
-								while (self.ship_id_whitelist[ship_id]) do
-									
-									self.listScroller:skip()
-									ship = self.listScroller:getCurrentItem(scanned_ship_targets)
-									ship_id = tostring(ship.id)
-									if (ship_id == prev_ship_id) then
-										break
-									end
-								end
-								return self.listScroller:getCurrentItem(scanned_ship_targets)
-							end
-						else
-
-							if (type(scanned_ship_targets) == "table") then
-								for i,trg in ipairs(scanned_ship_targets) do
-									if (tostring(trg.id) == tostring(self.designated_ship_id)) then
-										return trg
-									end
-								end
-							end
-							self.designated_ship_id = self.prev_designated_ship_id
-							return nil
-
-							
-						end
-					end
-				end
-				return self.listScroller:getCurrentItem(scanned_ship_targets)
-			end
-			return nil
-		end,
-		addToWhitelist = function(self,id)
-			if (id) then
-				id = tostring(id)
-				if (id ~= "") then
-					if (tostring(self.designated_ship_id) ~= id) then
-						if (not self.ship_id_whitelist[id]) then
-							self.ship_id_whitelist[id] = true
-						end
-					end
-				end
-			end
-		end,
-		removeFromWhitelist = function(self,id)
-			id = tostring(id)
-			if (tostring(self.designated_ship_id) ~= id) then
-				if (self.ship_id_whitelist[id]) then
-					self.ship_id_whitelist[id] = false
-				end
-			end
-		end,
-		setWhitelist = function(self,list)
-			self.ship_id_whitelist = list
-		end,
-		setDesignation = function(self,id)
-			if (id) then
-				id = tostring(id)
-				if (id ~= "") then
-					self.prev_designated_ship_id = self.designated_ship_id
-					self.addToWhitelist(self,id)
-					self.designated_ship_id = id
-				end
-			end
-		end,
-		getDesignation = function(self)
-			return self.designated_ship_id
-		end
-	}
-end
-
-
-
-
 function targeting_utilities.RadarSystems(radar_arguments)
 	return{
-		onboardPlayerRadar = targeting_utilities.OnBoardPlayerRadar(radar_arguments.ship_reader_component,
-												radar_arguments.player_radar_component,
-												radar_arguments.designated_player_name,
-												radar_arguments.player_name_whitelist,
-												radar_arguments.player_radar_box_size),
-												
-		onboardShipRadar = targeting_utilities.OnBoardShipRadar(radar_arguments.ship_radar_component,
-											radar_arguments.designated_ship_id,
-											radar_arguments.ship_id_whitelist,
-											radar_arguments.ship_radar_range),
+		
+		playerTargeting = radar_arguments.player_radar_component:PlayerTargeting(radar_arguments),
+		shipTargeting = radar_arguments.ship_radar_component:ShipTargeting(radar_arguments),
+		
 		targeted_players_undetected = false,
 		targeted_ships_undetected = false,
 		
 		updateTargetingTables = function(self)
-			self.onboardPlayerRadar:updateTargets()
-			self.onboardShipRadar:updateTargetList()
+			self.playerTargeting:updateTargets()
+			self.shipTargeting:updateTargetList()
 			--self.onboardEntityRadar:updateTargetList() --not implemented yet
 		end,
 		
@@ -286,7 +52,7 @@ function targeting_utilities.RadarSystems(radar_arguments)
 			case =
 				{
 				["PLAYER"] = function (is_auto_aim)
-								local player = self.onboardPlayerRadar:getTarget(is_auto_aim)
+								local player = self.playerTargeting:getTarget(is_auto_aim)
 								
 								if (player and next(player) ~= nil) then
 									self.targeted_players_undetected = false
@@ -302,7 +68,7 @@ function targeting_utilities.RadarSystems(radar_arguments)
 								return nil
 							end,
 				["SHIP"] = function (is_auto_aim)
-								local ship = self.onboardShipRadar:getTarget(is_auto_aim)
+								local ship = self.shipTargeting:getTarget(is_auto_aim)
 								if (ship) then
 									self.targeted_ships_undetected = false
 									local target_rot = ship.rotation
@@ -328,50 +94,50 @@ function targeting_utilities.RadarSystems(radar_arguments)
 				end
 		end,
 		scrollUpShipTargets = function(self)
-			self.onboardShipRadar.listScroller:scrollUp()
+			self.shipTargeting.listScroller:scrollUp()
 		end,
 		scrollDownShipTargets = function(self)
-			self.onboardShipRadar.listScroller:scrollDown()
+			self.shipTargeting.listScroller:scrollDown()
 		end,
 		scrollUpPlayerTargets = function(self)
-			self.onboardPlayerRadar.listScroller:scrollUp()
+			self.playerTargeting.listScroller:scrollUp()
 		end,
 		scrollDownPlayerTargets = function(self)
-			self.onboardPlayerRadar.listScroller:scrollDown()
+			self.playerTargeting.listScroller:scrollDown()
 		end,
 		setDesignatedMaster = function(self,is_player,designation)
 			if (is_player) then
-				self.onboardPlayerRadar:setDesignation(designation)
+				self.playerTargeting:setDesignation(designation)
 			else
-				self.onboardShipRadar:setDesignation(designation)
+				self.shipTargeting:setDesignation(designation)
 			end
 		end,
 		getDesignatedMaster = function(self,is_player)
 			if (is_player) then
-				return self.onboardPlayerRadar:getDesignation()
+				return self.playerTargeting:getDesignation()
 			else
-				return self.onboardShipRadar:getDesignation()
+				return self.shipTargeting:getDesignation()
 			end
 		end,
 		addToWhitelist = function(self,is_player,designation)
 			if (is_player) then
-				self.onboardPlayerRadar:addToWhitelist(designation)
+				self.playerTargeting:addToWhitelist(designation)
 			else
-				self.onboardShipRadar:addToWhitelist(designation)
+				self.shipTargeting:addToWhitelist(designation)
 			end
 		end,
 		removeFromWhitelist = function(self,is_player,designation)
 			if (is_player) then
-				self.onboardPlayerRadar:removeFromWhitelist(designation)
+				self.playerTargeting:removeFromWhitelist(designation)
 			else
-				self.onboardShipRadar:removeFromWhitelist(designation)
+				self.shipTargeting:removeFromWhitelist(designation)
 			end
 		end,
 		setWhitelist = function(self,is_playerWhiteList,list)
 			if (is_playerWhiteList) then
-				self.onboardPlayerRadar:setWhitelist(list)
+				self.playerTargeting:setWhitelist(list)
 			else
-				self.onboardShipRadar:setWhitelist(list)
+				self.shipTargeting:setWhitelist(list)
 			end
 		end
 	}
