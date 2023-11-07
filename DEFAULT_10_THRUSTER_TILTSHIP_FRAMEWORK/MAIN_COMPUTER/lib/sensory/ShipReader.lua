@@ -23,4 +23,9 @@ function ShipReader:getMass()
 	return self.peripheral.getMass()
 end
 
+function ShipReader:updateShipReader()
+	
+end
+
+
 return ShipReader

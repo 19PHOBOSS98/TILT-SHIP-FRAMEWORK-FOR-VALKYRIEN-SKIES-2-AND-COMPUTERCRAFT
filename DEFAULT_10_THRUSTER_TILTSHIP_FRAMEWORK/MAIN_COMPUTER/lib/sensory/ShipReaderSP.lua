@@ -1,34 +1,35 @@
-local Object = require "lib.object.Object"
+local ShipReader = require "lib.sensory.ShipReader"
+local ShipReaderSP = ShipReader:subclass()
 
-local ShipReader = Object:subclass()
-
-function ShipReader:init()
+function ShipReaderSP:init()
+	ShipReaderSP.superClass.init(self)
 	self.peripheral = peripheral.find("sp_radar")
 	
 	self.ship = self:initShip()
 	
-	self.shipID = ship.id
+	self.shipID = self.ship.id
 	
-	ShipReader.superClass.init(self)
+	
 end
 
-function ShipReader:getRotation(is_quaternion)
-	return self.ship.rotation
+function ShipReaderSP:getRotation(is_quaternion)
+	local rot = self.ship.rotation
+	return {w=rot.w,x=rot.x,y=rot.y,z=rot.z}
 end
 
-function ShipReader:getWorldspacePosition()
+function ShipReaderSP:getWorldspacePosition()
 	return self.ship.pos
 end
 
-function ShipReader:getShipID()
+function ShipReaderSP:getShipID()
 	return self.shipID
 end
 
-function ShipReader:getMass()
+function ShipReaderSP:getMass()
 	return self.ship.mass
 end
 
-function ShipReader:initShip()
+function ShipReaderSP:initShip()
 	local ship = self.peripheral.scan(1)[1]
 	if (not ship.is_ship) then
 		for i,v in ipairs (self.peripheral.scan(1)) do
@@ -41,17 +42,19 @@ function ShipReader:initShip()
 	return ship
 end
 
-function ShipReader:updateShipReader()
-	local ship = self.peripheral.scan(1)[1]
-	if (not ship.is_ship) then
-		for i,v in ipairs (self.peripheral.scan(1)) do
-			if (v.is_ship and v.id == self.shipID) then
-				ship = v
-				break
+function ShipReaderSP:updateShipReader()
+	if (self.peripheral) then
+		local ship = self.peripheral.scan(1)[1]
+		if (not ship.is_ship) then
+			for i,v in ipairs (self.peripheral.scan(1)) do
+				if (v.is_ship and v.id == self.shipID) then
+					ship = v
+					break
+				end
 			end
 		end
+		self.ship = ship
 	end
-	self.ship = ship
 end
 
-return ShipReader
+return ShipReaderSP

@@ -6,7 +6,7 @@ local player_spatial_utilities = require "lib.player_spatial_utilities"
 local flight_utilities = require "lib.flight_utilities"
 
 
-local Sensors = require "lib.sensory.Sensors"
+local Sensors = require "lib.sensory.SensorsSP"
 
 local Object = require "lib.object.Object"
 
@@ -140,10 +140,9 @@ function DroneBaseClass:initVariables()
 	
 	
 	self.ship_global_position = self.sensors.shipReader:getWorldspacePosition()
-	self.ship_global_position = self.ship_global_position
 	self.ship_global_position = vector.new(self.ship_global_position.x,self.ship_global_position.y,self.ship_global_position.z)
 	self.target_global_position = self.ship_global_position
-	
+
 	--useful for modifying flight behavior
 	self.rotation_error = vector.new(0,0,0)
 	self.position_error = vector.new(0,0,0)
@@ -287,48 +286,6 @@ function DroneBaseClass:initRadar(radar_config)
 	radar_config.EXTERNAL_ORBIT_TARGETING_CHANNEL = self.com_channels.EXTERNAL_ORBIT_TARGETING_CHANNEL
 	
 	self.sensors:initRadar(radar_config)
-	
-	--[[
-	local radar_arguments = {
-	ship_radar_component=self.sensors.shipRadar,
-	ship_reader_component=self.sensors.shipReader,
-	player_radar_component=self.sensors.playerRadar,
-	
-	--if target_mode is "2" and hunt_mode is false, drone orbits this ship if detected
-	designated_ship_id=tostring(radar_config.designated_ship_id),
-	
-	--if target_mode is "1" and hunt_mode is false, drone orbits this player if detected
-	designated_player_name=radar_config.designated_player_name,
-	
-	--ships excluded from being aimed at
-	ship_id_whitelist={
-		[tostring(self.ship_constants.MY_SHIP_ID)]=true,
-		[tostring(radar_config.designated_ship_id)]=true,
-	},
-	
-	--players excluded from being aimed at
-	player_name_whitelist={
-		[tostring(radar_config.designated_player_name)]=true,
-	},
-	
-	--player detector range is defined by a box area around the turret
-	player_radar_box_size=radar_config.player_radar_box_size or 50,
-	ship_radar_range=radar_config.ship_radar_range or 500
-	}
-	
-	for id,validation in pairs(radar_config.ship_id_whitelist) do
-		radar_arguments.ship_id_whitelist[id] = validation
-	end
-	
-	for name,validation in pairs(radar_config.player_name_whitelist) do
-		radar_arguments.player_name_whitelist[name] = validation
-	end
-	
-	self.sensors.radars = RadarSystems(radar_arguments)
-	self.sensors.aimTargeting = TargetingSystem(self.com_channels.EXTERNAL_AIM_TARGETING_CHANNEL,"PLAYER",false,false,self.sensors.radars)
-	self.sensors.orbitTargeting = TargetingSystem(self.com_channels.EXTERNAL_ORBIT_TARGETING_CHANNEL,"PLAYER",false,false,self.sensors.radars)
-	local radars = self.sensors.radars
-	--]]
 	
 	function DroneBaseClass:scrollUpShipTargets()
 		self.sensors:scrollUpShipTargets()

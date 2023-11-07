@@ -26,7 +26,7 @@ function player_spatial_utilities.PlayerVelocityCalculator()--playerSpatialUtili
 	return {
 	previous_player_position=vector.new(0,0,0),
 	previous_time = os.clock(),
-	getPlayerVelocity = function(self,curr_p)
+	getVelocity = function(self,curr_p)
 		local current_time = os.clock()
 		local delta_time_inv = 1/(current_time-self.previous_time)
 		self.previous_time = current_time

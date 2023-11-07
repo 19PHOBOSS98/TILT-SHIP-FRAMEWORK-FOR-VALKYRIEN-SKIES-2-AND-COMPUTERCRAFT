@@ -18,7 +18,7 @@ function PlayerRadar:getPlayersInCoords(pos1,pos2)
 	return self.peripheral.getPlayersInCoords(pos1,pos2)
 end
 
-function PlayerRadar:PlayerTargeting(arguments)
+function PlayerRadar:Targeting(arguments)
 	local pr = self
 	
 	return{
@@ -89,6 +89,7 @@ function PlayerRadar:PlayerTargeting(arguments)
 			end
 			return nil
 		end,
+		
 		addToWhitelist = function(self,name)
 			if (name) then
 				if (name ~= "") then
@@ -100,6 +101,7 @@ function PlayerRadar:PlayerTargeting(arguments)
 				end
 			end
 		end,
+		
 		removeFromWhitelist = function(self,name)
 			if (self.designated_player_name ~= name) then
 				if (self.player_name_whitelist[name]) then
@@ -107,9 +109,11 @@ function PlayerRadar:PlayerTargeting(arguments)
 				end
 			end
 		end,
+		
 		setWhitelist = function(self,list)
 			self.player_name_whitelist = list
 		end,
+		
 		setDesignation = function(self,name)
 			if (name) then
 				if (name ~= "") then
@@ -119,6 +123,7 @@ function PlayerRadar:PlayerTargeting(arguments)
 				end
 			end
 		end,
+		
 		getDesignation = function(self)
 			return self.designated_player_name
 		end

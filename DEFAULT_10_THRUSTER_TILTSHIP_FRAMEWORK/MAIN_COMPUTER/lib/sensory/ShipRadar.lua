@@ -14,10 +14,10 @@ function ShipRadar:scan(range)
 	return self.peripheral.scan(range)[1]
 end
 
-function ShipRadar:ShipTargeting(arguments)
+function ShipRadar:Targeting(arguments)
 	local sr = self
 	return{
-		range = arguments.ship_radar_range,
+		range = arguments.radar_range,
 		designated_ship_id = arguments.designated_ship_id,
 		ship_id_whitelist = arguments.ship_id_whitelist,
 		prev_designated_ship_id = designated_ship_id,
@@ -37,7 +37,7 @@ function ShipRadar:ShipTargeting(arguments)
 		
 		targets = {},
 		
-		updateTargetList = function(self)
+		updateTargets = function(self)
 			self.targets = self:getTargetList(self)
 		end,
 		
