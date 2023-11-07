@@ -6,7 +6,7 @@ local player_spatial_utilities = require "lib.player_spatial_utilities"
 local flight_utilities = require "lib.flight_utilities"
 
 
-local Sensors = require "lib.sensory.SensorsSP"
+local Sensors = require "lib.sensory.Sensors"
 
 local Object = require "lib.object.Object"
 
